@@ -51,12 +51,31 @@ def combine_signals(model_score: float, style_score: float) -> float:
 
     The weights in config.py are placeholders. Change them, or ignore them and
     write a different rule.
+
+    My rule, written before the code:
+
+      1. Weighted average, 0.5 / 0.5 (config.WEIGHT_*).
+      2. If the two signals disagree, pull the average halfway back toward
+         0.5 (config.DISAGREEMENT_SHRINK). Two methods disagreeing is
+         uncertainty.
+      3. "Disagree" is asymmetric on purpose. An AI-leaning average (> 0.5)
+         is softened at a gap over config.DISAGREEMENT_GAP_AI (0.30); a
+         human-leaning one only at a gap over config.DISAGREEMENT_GAP_HUMAN
+         (0.50). It takes more agreement to accuse someone than to clear
+         them, because the false positive is the expensive error. The human
+         side still has a limit because sprinkling punctuation into AI text
+         drives the style signal to 0 on its own (my "gamed_ai" calibration
+         input), and that alone shouldn't earn a confident "human".
     """
-    # TODO: replace this
-    return (
+    score = (
         config.WEIGHT_MODEL_SIGNAL * model_score
         + config.WEIGHT_STYLE_SIGNAL * style_score
     )
+    gap = abs(model_score - style_score)
+    limit = config.DISAGREEMENT_GAP_AI if score > 0.5 else config.DISAGREEMENT_GAP_HUMAN
+    if gap > limit:
+        score = 0.5 + (score - 0.5) * config.DISAGREEMENT_SHRINK
+    return round(min(max(score, 0.0), 1.0), 4)
 
 
 def score_to_label(score: float) -> tuple[str, str]:

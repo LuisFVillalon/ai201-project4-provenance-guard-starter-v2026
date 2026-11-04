@@ -50,12 +50,21 @@ DETECTOR_MAX_TOKENS = 400
 # ─── Scoring (Milestone 4) ───────────────────────────────────────────────────
 # How much each signal counts toward the combined score.
 #
-# ⚠️ These are placeholders. Milestone 4 asks you to write your combining rule
-# down BEFORE you code it, and to put the numbers in your README. Whatever you
-# decide, it goes here.
+# Equal weights. In calibration the style signal separated AI from human text
+# more widely, but it is also the cheapest to game (typos, dashes), and the
+# model signal is the harder one to move on purpose. Neither earns more trust.
+#
+# The rule itself is in scoring.py::combine_signals: a weighted average, and
+# when the signals disagree the distance from 0.5 is multiplied by
+# DISAGREEMENT_SHRINK. "Disagree" means a gap over DISAGREEMENT_GAP_AI for an
+# AI-leaning score and over DISAGREEMENT_GAP_HUMAN for a human-leaning one.
 
 WEIGHT_MODEL_SIGNAL = 0.5
 WEIGHT_STYLE_SIGNAL = 0.5
+
+DISAGREEMENT_GAP_AI = 0.30
+DISAGREEMENT_GAP_HUMAN = 0.50
+DISAGREEMENT_SHRINK = 0.5
 
 
 # ─── Thresholds (Milestone 5) ────────────────────────────────────────────────

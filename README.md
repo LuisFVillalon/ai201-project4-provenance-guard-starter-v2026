@@ -104,16 +104,92 @@ human with a deliberately tidy, even style as AI-like.
 <!-- Write the rule in words, then give the numbers. What happens when the two
      signals disagree? -->
 
+**How the style signal is built** (`stylometry.py::style_signal`): each
+measure is flipped so higher = more AI-like, then mapped linearly onto 0–1
+between a "very AI" and a "very human" anchor and clamped:
+
+| Measure | Raw value | Scores 1.0 (AI) at | Scores 0.0 (human) at | Weight |
+|---|---|---|---|---|
+| Sentence-length spread | stdev / mean of words per sentence | 0.20 | 0.70 | 0.5 |
+| Type-token ratio | moving-average TTR, 50-word window | 0.60 | 0.85 | 0.2 |
+| Punctuation density | `; : — – ( ) ! ? --` per word | 0.00 | 0.05 | 0.3 |
+
+With fewer than 3 sentences, spread is scored neutral (0.5), because "no
+spread to measure" is not evidence of AI. TTR is weighted lowest because it
+ran the wrong way in calibration (see below).
+
 **The rule:**
 
-**The numbers:**
+1. Take the weighted average of the two signals.
+2. If the signals disagree, pull the average halfway back toward 0.5. Two
+   methods disagreeing is uncertainty.
+3. What counts as "disagree" is asymmetric. An AI-leaning average (above 0.5)
+   is softened when the gap is over **0.30**. A human-leaning one is softened
+   only when the gap is over **0.50**. Accusing someone takes more agreement
+   than clearing them, because the false positive is the expensive error.
+   The human side still has a limit, because sprinkling punctuation into AI
+   text can push the style signal to 0 by itself.
+
+**The numbers** (in `config.py`):
+
+| Setting | Value |
+|---|---|
+| `WEIGHT_MODEL_SIGNAL` | 0.5 |
+| `WEIGHT_STYLE_SIGNAL` | 0.5 |
+| `DISAGREEMENT_GAP_AI` | 0.30 |
+| `DISAGREEMENT_GAP_HUMAN` | 0.50 |
+| `DISAGREEMENT_SHRINK` | 0.5 (distance from 0.5 is halved) |
+
+Equal weights because neither signal earned more trust. The style signal
+separated my calibration texts more widely, but it is also the cheapest to
+game. The detector's perplexity midpoint (45) is unchanged.
 
 **Where it lives:** `scoring.py::combine_signals`
 
 <!-- ⚠️ The grader checks your code against that line. If your rule lives
      somewhere else, say where. -->
 
+**Calibration run** (both signals, then combined; scored through `POST /submit`):
+
+| Input | Perplexity | model_score | spread | TTR | punct | style_score | confidence |
+|---|---|---|---|---|---|---|---|
+| Clearly AI (unedited chatbot-style paragraph) | 14.6 | 0.858 | 0.294 | 0.911 | 0.000 | 0.706 | **0.782** |
+| Clearly human (my grandmother/buttons piece) | 45.5 | 0.496 | 0.903 | 0.892 | 0.030 | 0.118 | **0.307** |
+| Plain human (short, even sentences, simple words) | 11.2 | 0.902 | 0.270 | 0.774 | 0.000 | 0.791 | **0.847** |
+| Lightly-edited AI (the AI text, reworded casually) | 22.9 | 0.747 | 0.469 | 0.858 | 0.013 | 0.454 | **0.600** |
+| Gamed AI (the AI text + `; ! ( ) -- :` sprinkled in) | — | 0.621 | — | — | — | 0.000 | **0.405** |
+
+What I learned from it:
+
+- **Clearly AI and clearly human separate by 0.475**, which is above my
+  criterion-2 target of 0.30.
+- **Plain human writing scores higher than clearly-AI text on both signals.**
+  This is the Ana case from [design.md](design.md), confirmed. Both signals
+  share the blind spot, so they *agree*, and no combining rule built from
+  these two signals can pull it apart. That has to be handled by where the AI
+  threshold sits and how the labels are worded (Milestone 5). Right now
+  criterion 1 would fail for that paragraph under the starter's 0.65 AI threshold.
+- **Type-token ratio ran backwards.** The AI text had the *most* varied
+  vocabulary (0.911) and the plain human text the least (0.774). All it
+  reliably detects is plain writing, so I cut its weight to 0.2.
+- **Sentence-length spread did the real work.** It was 0.90 for the human
+  piece vs 0.27–0.29 for the AI and plain pieces.
+
 **A case where my two signals split, and what my rule does with it:**
+
+*Gamed AI.* I took the clearly-AI paragraph and added semicolons, an
+exclamation mark, a parenthetical, a dash and two fragments, without
+changing what it says. The style signal dropped from 0.706 to **0.000**. The
+model signal still read it as fairly predictable at **0.621**. The plain
+average is 0.31, which would have been a confident "human" verdict on AI text.
+My first version of the rule only softened AI-leaning scores, and it let
+this through (that run is in the log at 0.310). With the human-side gap limit,
+the 0.62 gap triggers the shrink: 0.5 + (0.31 − 0.5) × 0.5 = **0.405**, which
+lands in unsure.
+
+The real human piece also splits (0.496 vs 0.118, gap 0.38), but that gap is
+under the 0.50 human-side limit, so it keeps its 0.307. Telling these two
+apart is the whole reason the two limits differ.
 
 
 

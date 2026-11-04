@@ -30,6 +30,7 @@ from flask import Flask, jsonify, request
 
 import audit
 import config
+import scoring
 import stylometry
 
 app = Flask(__name__)
@@ -200,19 +201,6 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
-    # Milestone 3, step 1: a hardcoded response, to prove the route answers
-    # before any logic runs. Remove this return to switch on the real route.
-    return jsonify({
-        "content_id": "hardcoded-0000",
-        "creator_id": "hardcoded",
-        "guess": "unsure",
-        "confidence": 0.5,
-        "label": "HARDCODED: the route answers.",
-        "model_score": None,
-        "style_score": None,
-        "status": "decided",
-    })
-
     import detector
 
     payload = request.get_json(silent=True)
@@ -247,11 +235,11 @@ def submit():
     except detector.DetectorUnavailable as exc:
         return _reject(creator_id, "detector_unavailable", str(exc), 503)
 
-    # Milestone 3 placeholders. The style signal, the combined score and the
-    # label arrive in Milestones 4 and 5; until then confidence just mirrors
-    # signal one and the guess stays "unsure" so nothing reads as a verdict.
-    style_score = None
-    confidence = model_score
+    style_score = stylometry.style_signal(text)
+    confidence = scoring.combine_signals(model_score, style_score)
+
+    # Milestone 4 placeholder. The label arrives in Milestone 5; until then the
+    # guess stays "unsure" so nothing reads as a verdict.
     guess = "unsure"
     label = "PLACEHOLDER: label text arrives in Milestone 5."
 
