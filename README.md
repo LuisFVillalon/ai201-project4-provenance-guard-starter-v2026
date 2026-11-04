@@ -394,17 +394,41 @@ with the same `content_id` and `status: "under_review"`.
 
 ## How I Used AI
 
-**Moment 1**
+**Moment 1: naming the blind spots and tracing the false positive (Milestone 1)**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* help tracing a submission from `POST /submit` to the
+  label, naming what each of my two signals measures and what it can't see,
+  and drafting the endpoint contracts. That became [design.md](design.md).
+- *What came back:* a step-by-step path through `app.py`, `detector.py`,
+  `stylometry.py`, `scoring.py` and `audit.py`, a blind spot for each signal,
+  and request/response tables for both endpoints.
+- *What I changed:* I made the blind spots specific to the people they would
+  hurt. "Predictable ≠ machine-written" became second-language and younger
+  writers, and I wrote the Ana trace around that. Walking her through the
+  starter's 0.65 AI threshold is what showed me that both signals share the
+  plain-writing blind spot, so their agreement can't count as certainty. That
+  set the direction for everything after it: a high AI threshold and a wide
+  unsure band. I also added the error table (`400`/`404`/`409`/`413`) and the
+  20-word minimum to the contract, so very short text never gets a confident
+  label.
 
-**Moment 2**
+**Moment 2: the combining rule (Milestone 4)**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* help writing `scoring.py::combine_signals` from my
+  written rule: a 50/50 weighted average, pulled back toward 0.5 when the
+  signals disagree, with disagreement judged more strictly on the AI side.
+- *What came back:* a version that only softened **AI-leaning** scores, which
+  matched my "accusing takes more agreement" reasoning. Human-leaning scores
+  were never touched.
+- *What I changed:* I tested it against my "gamed AI" input, which is the AI
+  paragraph with semicolons, an exclamation mark, a parenthetical and dashes
+  sprinkled in. The style signal fell to 0.000, the model signal stayed at
+  0.621, and the rule passed the 0.31 average straight through as a confident
+  human verdict on AI text. You can see it in the log at 06:18:21
+  (`combined_score: 0.3103`). I added a second, looser gap limit for the human
+  side (`DISAGREEMENT_GAP_HUMAN = 0.50` next to `DISAGREEMENT_GAP_AI = 0.30`).
+  The same input now lands in unsure at 0.405 (log, 06:19:27). My real human
+  piece, with a 0.38 gap, still keeps its 0.307 human score.
 
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 
