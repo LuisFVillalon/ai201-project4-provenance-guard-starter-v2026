@@ -30,6 +30,7 @@ from flask import Flask, jsonify, request
 
 import audit
 import config
+import stylometry
 
 app = Flask(__name__)
 
@@ -199,17 +200,92 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
-    payload = request.get_json(silent=True) or {}
-
-    # TODO: delete this and build the route.
+    # Milestone 3, step 1: a hardcoded response, to prove the route answers
+    # before any logic runs. Remove this return to switch on the real route.
     return jsonify({
-        "error": "not_implemented",
-        "message": "POST /submit isn't built yet — see the TODO in app.py.",
-        "you_sent": {
-            "text_length": len(payload.get("text", "")),
-            "creator_id": payload.get("creator_id"),
-        },
-    }), 501
+        "content_id": "hardcoded-0000",
+        "creator_id": "hardcoded",
+        "guess": "unsure",
+        "confidence": 0.5,
+        "label": "HARDCODED: the route answers.",
+        "model_score": None,
+        "style_score": None,
+        "status": "decided",
+    })
+
+    import detector
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return _reject("unknown", "invalid_json",
+                       "Send a JSON object with 'text' and 'creator_id'.")
+
+    creator_id = payload.get("creator_id")
+    text = payload.get("text")
+
+    if not isinstance(creator_id, str) or not creator_id.strip():
+        return _reject("unknown", "missing_creator_id",
+                       "'creator_id' is required and can't be blank.")
+    creator_id = creator_id.strip()
+
+    if not isinstance(text, str) or not text.strip():
+        return _reject(creator_id, "missing_text",
+                       "'text' is required and can't be blank.")
+    if len(text) > MAX_TEXT_CHARS:
+        return _reject(creator_id, "text_too_long",
+                       f"'text' can be at most {MAX_TEXT_CHARS:,} characters.", 413,
+                       text_length=len(text))
+    if len(stylometry.words(text)) < MIN_TEXT_WORDS:
+        return _reject(creator_id, "text_too_short",
+                       f"'text' needs at least {MIN_TEXT_WORDS} words to judge fairly.",
+                       text_length=len(text))
+
+    content_id = str(uuid.uuid4())
+
+    try:
+        model_score = detector.model_signal(text)
+    except detector.DetectorUnavailable as exc:
+        return _reject(creator_id, "detector_unavailable", str(exc), 503)
+
+    # Milestone 3 placeholders. The style signal, the combined score and the
+    # label arrive in Milestones 4 and 5; until then confidence just mirrors
+    # signal one and the guess stays "unsure" so nothing reads as a verdict.
+    style_score = None
+    confidence = model_score
+    guess = "unsure"
+    label = "PLACEHOLDER: label text arrives in Milestone 5."
+
+    audit.log_decision(
+        content_id=content_id,
+        creator_id=creator_id,
+        guess=guess,
+        model_score=model_score,
+        style_score=style_score,
+        combined_score=confidence,
+        label=label,
+        status="decided",
+    )
+
+    return jsonify({
+        "content_id": content_id,
+        "creator_id": creator_id,
+        "guess": guess,
+        "confidence": confidence,
+        "label": label,
+        "model_score": model_score,
+        "style_score": style_score,
+        "status": "decided",
+    })
+
+
+MIN_TEXT_WORDS = 20
+MAX_TEXT_CHARS = 20_000
+
+
+def _reject(creator_id, error, message, status=400, **extra):
+    """Refuse a request, and leave a trace of the refusal in the audit log."""
+    audit.log_rejection(creator_id=creator_id, reason=error, **extra)
+    return jsonify({"error": error, "message": message}), status
 
 
 @app.post("/appeal")

@@ -153,14 +153,49 @@ human with a deliberately tidy, even style as AI-like.
      two off the response, so leaving them out costs you next unit's
      diagnostics. -->
 
+*Milestone 3 run: signal one only. `style_score`, `confidence` and `label`
+are placeholders until Milestones 4–5.*
+
 ```bash
 $ curl -X POST http://127.0.0.1:5000/submit \
   -H "Content-Type: application/json" \
-  -d '{"text": "...", "creator_id": "..."}'
+  -d '{"text": "My grandmother kept a jar of buttons on the windowsill, and every Sunday I would tip it out onto the rug and sort them by color while she yelled at the Padres on the radio. There was one brass button shaped like an anchor. Nobody knew where it came from.", "creator_id": "luis_v"}'
 ```
 
 ```json
+{"confidence":0.4661,"content_id":"e21fb289-49b3-4434-be24-62d55136835f","creator_id":"luis_v","guess":"unsure","label":"PLACEHOLDER: label text arrives in Milestone 5.","model_score":0.4661,"status":"decided","style_score":null}
+```
 
+**Bad input is refused, and the refusal is logged**
+
+```bash
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" -d '{"text": "   ", "creator_id": "luis_v"}'
+{"error":"missing_text","message":"'text' is required and can't be blank."}          # 400
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" -d '{"text": "Too short.", "creator_id": "luis_v"}'
+{"error":"text_too_short","message":"'text' needs at least 20 words to judge fairly."} # 400
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" -d '{"text": "hello"}'
+{"error":"missing_creator_id","message":"'creator_id' is required and can't be blank."} # 400
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" -d '[1,2]'
+{"error":"invalid_json","message":"Send a JSON object with 'text' and 'creator_id'."}  # 400
+# 25,000 characters of text:
+{"error":"text_too_long","message":"'text' can be at most 20,000 characters."}         # 413
+```
+
+**The log after that run**
+
+```bash
+$ curl "http://127.0.0.1:5000/log?limit=7"
+```
+
+```json
+{"count":6,"entries":[
+  {"combined_score":0.4661,"content_id":"e21fb289-49b3-4434-be24-62d55136835f","creator_id":"luis_v","guess":"unsure","label":"PLACEHOLDER: label text arrives in Milestone 5.","model_score":0.4661,"status":"decided","style_score":null,"timestamp":"2026-11-04T06:03:18+00:00"},
+  {"creator_id":"luis_v","event":"rejected","reason":"missing_text","status":"rejected","timestamp":"2026-11-04T06:03:18+00:00"},
+  {"creator_id":"luis_v","event":"rejected","reason":"text_too_short","status":"rejected","text_length":10,"timestamp":"2026-11-04T06:03:18+00:00"},
+  {"creator_id":"unknown","event":"rejected","reason":"missing_creator_id","status":"rejected","timestamp":"2026-11-04T06:03:18+00:00"},
+  {"creator_id":"unknown","event":"rejected","reason":"invalid_json","status":"rejected","timestamp":"2026-11-04T06:03:18+00:00"},
+  {"creator_id":"luis_v","event":"rejected","reason":"text_too_long","status":"rejected","text_length":25000,"timestamp":"2026-11-04T06:03:18+00:00"}
+]}
 ```
 
 **An appeal**
