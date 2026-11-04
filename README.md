@@ -39,6 +39,23 @@
 <!-- The path a submission takes, from arriving to the label a reader sees.
      Six or seven steps — this is the trace you wrote in Milestone 1. -->
 
+1. **`POST /submit` arrives** (`app.py::submit`) with `text` and `creator_id`.
+2. **Input check.** Missing, blank, too-short or oversized text is refused
+   with a `400`/`413`, and the refusal is logged.
+3. **A `content_id` is minted.** This is the handle the writer uses later to appeal.
+4. **Signal one** (`detector.py::model_signal`): how predictable gpt2 finds
+   the text → `model_score`.
+5. **Signal two** (`stylometry.py::style_signal`): the shape of the text
+   (sentence-length spread, word variety, punctuation) → `style_score`.
+6. **Combine and label** (`scoring.py::combine_signals`, `score_to_label`):
+   one `confidence` score, mapped to a `guess` and a plain-English `label`.
+7. **Log and respond.** Everything, including both signal scores, is written to
+   `logs/audit.jsonl` and returned to the caller.
+
+If the writer disagrees, `POST /appeal` with the `content_id` and their
+reasoning appends an `under_review` entry next to the original decision.
+
+Full design notes and endpoint contracts: [design.md](design.md).
 
 
 ---
@@ -53,19 +70,34 @@
 
 ### Signal one — the model signal
 
-**What it measures:**
+**What it measures:** predictability. That is gpt2's perplexity on the text,
+squashed to 0–1 so that low perplexity gives a high (more AI-like) score.
 
-**Why that might differ between human and AI writing:**
+**Why that might differ between human and AI writing:** a language model
+writes by picking likely next words, so its output is text a model finds easy
+to predict. Human writing has more odd word choices and specific details.
 
-**What it can't see:**
+**What it can't see:** authorship. Predictable ≠ machine-written. Plain
+writing with common words and short sentences (second-language writers,
+younger writers, anyone writing simply) scores as AI-like. Ornate, rare-word
+prose scores as human even when a model wrote it. It reads only the first 400
+tokens and is noisy on short text.
 
 ### Signal two — the style signal
 
-**What it measures:**
+**What it measures:** the text's surface shape, without reading it:
+sentence-length spread (std dev / mean), type-token ratio (unique / total
+words), and density of varied punctuation (`; : — ( ) ! ?`).
 
-**Why that might differ between human and AI writing:**
+**Why that might differ between human and AI writing:** generated prose
+tends toward even, mid-length sentences, a safe vocabulary and plain
+punctuation. Human writing is lumpier.
 
-**What it can't see:**
+**What it can't see:** meaning. Changes to shape that leave the substance
+alone move it: added typos, chopped or merged sentences, sprinkled dashes, a
+pasted quotation. It is length-sensitive (type-token ratio falls on long
+text, and spread means nothing with one or two sentences). It also reads a
+human with a deliberately tidy, even style as AI-like.
 
 ### The combining rule
 
