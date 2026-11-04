@@ -80,8 +80,18 @@ DISAGREEMENT_SHRINK = 0.5
 # getting through. There is no setting that avoids the trade — only settings
 # that decide who pays for it.
 
+# The AI threshold sits at 0.90, not the starter's 0.65, because plain human
+# writing scored 0.85–0.885 in calibration: as high as ordinary chatbot output
+# (0.80–0.89). Both signals share that blind spot, so the only way to keep my
+# criterion 1 (zero of my own pieces called AI) is to leave all of that in
+# unsure. The cost is that typical AI text gets "unsure" too; only the most
+# formulaic output (0.93–0.96 in calibration) gets the AI label.
+#
+# The human threshold stays at 0.35. My casual writing landed 0.31–0.39, and
+# a wrong "human" is the cheap error, so this side doesn't need the margin.
+
 HUMAN_THRESHOLD = 0.35
-AI_THRESHOLD = 0.65
+AI_THRESHOLD = 0.90
 
 # ⚠️ One thing that catches people out in Milestone 5. A weighted average can
 # only land between its two inputs — so while `style_signal` is still the stub

@@ -104,12 +104,31 @@ def score_to_label(score: float) -> tuple[str, str]:
     think if they got it on their own work. That question is the whole
     milestone.
     """
-    # TODO: replace this — thresholds are in config.py
     if score >= config.AI_THRESHOLD:
-        return "ai", "PLACEHOLDER — write the high-confidence AI label."
+        return "ai", LABEL_AI
     if score <= config.HUMAN_THRESHOLD:
-        return "human", "PLACEHOLDER — write the high-confidence human label."
-    return "unsure", "PLACEHOLDER — write the unsure label."
+        return "human", LABEL_HUMAN
+    return "unsure", LABEL_UNSURE
+
+
+# The exact text a reader sees. The AI label names the appeal and admits it
+# can be wrong, because the person reading it may have written every word.
+LABEL_HUMAN = (
+    "We think this was written by a person. Our check found the kind of "
+    "variety and detail we usually see in human writing."
+)
+LABEL_UNSURE = (
+    "We can't tell whether this was written by a person or with AI, so we "
+    "aren't making a call. Lots of writing by real people lands here, "
+    "especially plain or formal writing. This is not a sign that anything "
+    "is wrong."
+)
+LABEL_AI = (
+    "This writing closely matches patterns we often see in AI-generated text. "
+    "Our check can be wrong, and simple, even writing by real people can look "
+    "like this too. If you wrote it yourself, you can appeal and a person "
+    "will review it."
+)
 
 
 def label_ranges() -> list[tuple[str, str]]:

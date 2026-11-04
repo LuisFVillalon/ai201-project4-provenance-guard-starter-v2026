@@ -167,8 +167,9 @@ What I learned from it:
   This is the Ana case from [design.md](design.md), confirmed. Both signals
   share the blind spot, so they *agree*, and no combining rule built from
   these two signals can pull it apart. That has to be handled by where the AI
-  threshold sits and how the labels are worded (Milestone 5). Right now
-  criterion 1 would fail for that paragraph under the starter's 0.65 AI threshold.
+  threshold sits and how the labels are worded (Milestone 5). Criterion 1
+  would fail for that paragraph under the starter's 0.65 AI threshold, which
+  is why Milestone 5 moved it to 0.90 (see Label Variants).
 - **Type-token ratio ran backwards.** The AI text had the *most* varied
   vocabulary (0.911) and the plain human text the least (0.774). All it
   reliably detects is plain writing, so I cut its weight to 0.2.
@@ -202,16 +203,50 @@ apart is the whole reason the two limits differ.
 
      Write them for someone who has never heard the word "threshold". -->
 
+The text lives in `scoring.py` (`LABEL_HUMAN`, `LABEL_UNSURE`, `LABEL_AI`) and
+`scoring.py::score_to_label` picks one. Thresholds are in `config.py`
+(`HUMAN_THRESHOLD = 0.35`, `AI_THRESHOLD = 0.90`). Every score from 0 to 1
+maps to exactly one label: `≤ 0.35` is human, `≥ 0.90` is AI, everything
+between is unsure.
+
 | Label | Score range | The exact text a reader sees |
 |---|---|---|
-| high-confidence human |  |  |
-| unsure |  |  |
-| high-confidence AI |  |  |
+| high-confidence human | 0.00 – 0.35 | We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing. |
+| unsure | 0.35 – 0.90 | We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong. |
+| high-confidence AI | 0.90 – 1.00 | This writing closely matches patterns we often see in AI-generated text. Our check can be wrong, and simple, even writing by real people can look like this too. If you wrote it yourself, you can appeal and a person will review it. |
 
-**Why I worded the "unsure" one this way:**
-<!-- It's the hardest of the three. It has to admit uncertainty without
-     sounding like an accusation, because the person reading it may well have
-     written every word themselves. -->
+**Why the AI threshold is 0.90 and not 0.65:** in calibration, plain human
+writing (short, even sentences, common words) scored **0.85–0.885**, as high
+as ordinary chatbot paragraphs (**0.80–0.89**). My formal cover-letter paragraph
+scored 0.72. Both signals share this blind spot, so the threshold is the only
+place left to protect those writers, and criterion 1 allows zero of them to be
+called AI. At 0.90 all of them land in unsure. The cost is real: most ordinary
+AI text also lands in unsure, and only very formulaic output (0.93–0.96 in
+calibration) reaches the AI label. That's the trade I chose in
+[design.md](design.md): a missed AI essay costs the site a little, and a wrong
+accusation costs a writer a lot. The margin is thin. 0.885 is close to 0.90,
+so a slightly plainer human piece could still cross it.
+
+**Reachability check** (all three through `POST /submit`, full responses under
+Sample Run):
+
+| Input | model_score | style_score | confidence | Label |
+|---|---|---|---|---|
+| My bus-stop paragraph (casual, uneven, dialogue) | 0.573 | 0.110 | 0.341 | human |
+| Plain human paragraph (short, even sentences) | 0.861 | 0.909 | 0.885 | unsure |
+| Formulaic AI paragraph about drinking water | 0.953 | 0.965 | 0.959 | AI |
+
+**Why I worded the "unsure" one this way:** the person reading it may well
+have written every word, and given my threshold, most people who see it *did*.
+So it says plainly that we aren't making a call. It names the kinds of writing
+that end up there (plain, formal), so a careful writer doesn't take it as a
+judgement on their style. It ends with "not a sign that anything is wrong" so
+it can't be read as a softer accusation. It doesn't mention the appeal, because
+there is nothing to appeal: the item isn't marked as AI.
+
+**Why the AI one names the appeal:** it's the only label that accuses anyone,
+so it says the check can be wrong, names the exact kind of human writing that
+trips it, and tells the writer what they can do.
 
 
 
@@ -274,27 +309,86 @@ $ curl "http://127.0.0.1:5000/log?limit=7"
 ]}
 ```
 
+**Milestone 5 run: all three labels.** Each body was saved to a file and sent
+with `--data-binary`, because the texts have quotes and dashes in them.
+
+```bash
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" --data-binary @human.json
+# {"text": "The 7 bus was late again — twenty minutes, in the rain, with no shelter. A guy next to me was eating sunflower seeds and spitting the shells into a Big Gulp cup. I asked him how long he'd been waiting. \"Since Tuesday,\" he said, deadpan. I laughed so hard I almost missed the bus when it finally showed up. Worth it? Honestly, yes.", "creator_id": "luis_v"}
+```
+
+```json
+{"confidence":0.3414,"content_id":"a87470b4-42e0-4efc-8d2e-cb0b7cdeee36","creator_id":"luis_v","guess":"human","label":"We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.","model_score":0.5732,"status":"decided","style_score":0.1095}
+```
+
+```bash
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" --data-binary @unsure.json
+# {"text": "I live in San Diego with my family. I go to school every day. I like my classes a lot. My favorite class is math. I study at the library after school. Then I take the bus home. I help my mom make dinner. We eat together at the table. After dinner I do my homework. I go to bed at ten.", "creator_id": "luis_v"}
+```
+
+```json
+{"confidence":0.8849,"content_id":"d1e64954-6ab1-4321-9b33-ff05fe2e2ceb","creator_id":"luis_v","guess":"unsure","label":"We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.","model_score":0.8609,"status":"decided","style_score":0.9089}
+```
+
+```bash
+$ curl -X POST http://127.0.0.1:5000/submit -H "Content-Type: application/json" --data-binary @ai.json
+# {"text": "Water is essential for all living things on the planet. It is important for people to drink enough water every day. Water helps the body to stay healthy and work properly. It also helps to regulate the temperature of the body. Many people do not drink enough water each day. It is important to make sure that you drink enough water every day. Drinking water is one of the best ways to stay healthy.", "creator_id": "luis_v"}
+```
+
+```json
+{"confidence":0.9587,"content_id":"c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf","creator_id":"luis_v","guess":"ai","label":"This writing closely matches patterns we often see in AI-generated text. Our check can be wrong, and simple, even writing by real people can look like this too. If you wrote it yourself, you can appeal and a person will review it.","model_score":0.9527,"status":"decided","style_score":0.9648}
+```
+
 **An appeal**
+
+This appeals the AI-labelled submission above. The reasoning is a test
+message, written the way a wrongly flagged writer might put it.
 
 ```bash
 $ curl -X POST http://127.0.0.1:5000/appeal \
   -H "Content-Type: application/json" \
-  -d '{"content_id": "...", "reasoning": "..."}'
+  -d '{"content_id": "c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf", "reasoning": "I wrote this myself for a 5th-grade health class handout. It is simple on purpose because the readers are ten years old."}'
 ```
 
 ```json
-
+{"appealed_at":"2026-11-04T06:25:49+00:00","content_id":"c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf","message":"Thanks — your appeal is recorded and a person will review this piece. Until then it is marked as under review, not as AI-written.","original_guess":"ai","status":"under_review"}
 ```
+
+**Appeals that should fail, and do**
+
+```bash
+# same content_id again
+{"error":"already_under_review","message":"This piece already has an appeal on record, and a person will review it."}   # 409
+# "content_id": "not-a-real-id"
+{"error":"unknown_content_id","message":"No submission with content_id 'not-a-real-id'. Check the id from your submit response."}   # 404
+# "reasoning": "   "
+{"error":"missing_reasoning","message":"Tell us why you think we got it wrong."}   # 400
+# no content_id
+{"error":"missing_content_id","message":"'content_id' is required and can't be blank."}   # 400
+# body is [1]
+{"error":"invalid_json","message":"Send a JSON object with 'content_id' and 'reasoning'."}   # 400
+```
+
+None of the failed appeals wrote a log entry. The log below shows only the
+one successful appeal.
 
 **What the log shows afterwards**
 
 ```bash
-$ curl "http://127.0.0.1:5000/log?limit=3"
+$ curl "http://127.0.0.1:5000/log?limit=4"
 ```
 
 ```json
-
+{"count":4,"entries":[
+  {"combined_score":0.3414,"content_id":"a87470b4-42e0-4efc-8d2e-cb0b7cdeee36","creator_id":"luis_v","guess":"human","label":"We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.","model_score":0.5732,"status":"decided","style_score":0.1095,"timestamp":"2026-11-04T06:25:13+00:00"},
+  {"combined_score":0.8849,"content_id":"d1e64954-6ab1-4321-9b33-ff05fe2e2ceb","creator_id":"luis_v","guess":"unsure","label":"We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.","model_score":0.8609,"status":"decided","style_score":0.9089,"timestamp":"2026-11-04T06:25:14+00:00"},
+  {"combined_score":0.9587,"content_id":"c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf","creator_id":"luis_v","guess":"ai","label":"This writing closely matches patterns we often see in AI-generated text. Our check can be wrong, and simple, even writing by real people can look like this too. If you wrote it yourself, you can appeal and a person will review it.","model_score":0.9527,"status":"decided","style_score":0.9648,"timestamp":"2026-11-04T06:25:14+00:00"},
+  {"content_id":"c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf","creator_id":"luis_v","event":"appeal","reasoning":"I wrote this myself for a 5th-grade health class handout. It is simple on purpose because the readers are ten years old.","status":"under_review","timestamp":"2026-11-04T06:25:49+00:00"}
+]}
 ```
+
+The original `ai` decision is still there, unchanged. The appeal sits after it
+with the same `content_id` and `status: "under_review"`.
 
 ---
 
