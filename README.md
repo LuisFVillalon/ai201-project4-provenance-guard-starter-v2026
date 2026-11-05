@@ -436,24 +436,24 @@ with the same `content_id` and `status: "under_review"`.
 
 ## Rate Limiting
 
-**My limits:** ___ per minute, ___ per day
+**My limits:** 5 per minute, 50 per day
 
 **Why those numbers and not others:**
 <!-- Think about two people: a real writer submitting their own work a few
      times an hour, and a script sending a thousand variations to map your
      thresholds. Your numbers have to be liveable for the first and hostile to
      the second. -->
+A writer revising a passage might resubmit every 15–20 seconds during a burst of small edits, so 5 per minute allows that without much waiting. 50 per day allows several rounds of revision across a few pieces of writing, which is more than I'd expect most writers to need. A script is limited to 50 submissions per day per `creator_id`, so testing 1,000 variations under one ID would take 20 days.
 
-**What a caller counts as:** <!-- per address, or per creator_id? They fail
-differently — one script can look like a thousand callers, and one household
-can look like one. -->
+**What a caller counts as:** <!-- per address, or per creator_id? They fail differently — one script can look like a thousand callers, and one household can look like one. -->
+A caller counts per `creator_id`, falling back to IP address when it's missing or blank. A script that changes its `creator_id` on each request gets around both limits.
 
 **The run of status codes when I pushed past it:**
 
 <!-- python run_attacks.py --flood 15 -->
 
 ```
-
+200 200 200 200 200 429 429 429 429 429 429 429 429 429 429
 ```
 
 ---

@@ -153,7 +153,7 @@ def health():
 # ── YOU BUILD THIS ────────────────────────────────────────────────────────────
 
 @app.post("/submit")
-# @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
+@limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
 def submit():
     """
     Take a piece of text, decide about it, log the decision, answer.
@@ -294,29 +294,32 @@ def appeal():
     """
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
-        return jsonify({"error": "invalid_json",
-                        "message": "Send a JSON object with 'content_id' and 'reasoning'."}), 400
+        return _reject("unknown", "invalid_json",
+                       "Send a JSON object with 'content_id' and 'reasoning'.")
 
     content_id = payload.get("content_id")
     reasoning = payload.get("reasoning")
 
     if not isinstance(content_id, str) or not content_id.strip():
-        return jsonify({"error": "missing_content_id",
-                        "message": "'content_id' is required and can't be blank."}), 400
+        return _reject("unknown", "missing_content_id",
+                       "'content_id' is required and can't be blank.")
     content_id = content_id.strip()
 
     if not isinstance(reasoning, str) or not reasoning.strip():
-        return jsonify({"error": "missing_reasoning",
-                        "message": "Tell us why you think we got it wrong."}), 400
+        return _reject("unknown", "missing_reasoning",
+                       "Tell us why you think we got it wrong.",
+                       attempted_content_id=content_id)
 
     entries = audit.entries_for(content_id)
     decision = next((e for e in entries if e.get("status") == "decided"), None)
     if decision is None:
-        return jsonify({"error": "unknown_content_id",
-                        "message": f"No submission with content_id '{content_id}'. Check the id from your submit response."}), 404
+        return _reject("unknown", "unknown_content_id",
+                       f"No submission with content_id '{content_id}'. Check the id from your submit response.",
+                       404, attempted_content_id=content_id)
     if any(e.get("event") == "appeal" for e in entries):
-        return jsonify({"error": "already_under_review",
-                        "message": "This piece already has an appeal on record, and a person will review it."}), 409
+        return _reject(decision.get("creator_id"), "already_under_review",
+                       "This piece already has an appeal on record, and a person will review it.",
+                       409, attempted_content_id=content_id)
 
     entry = audit.log_appeal(
         content_id=content_id,
