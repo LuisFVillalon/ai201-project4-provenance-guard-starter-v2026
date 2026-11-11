@@ -923,20 +923,125 @@ not a revision.
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** I removed type-token ratio from the style signal. That's
+one change, in `stylometry.py`:
 
-**Which diagnosis pointed at it:**
+| | `WEIGHT_SPREAD` | `WEIGHT_TTR` | `WEIGHT_PUNCT` |
+|---|---|---|---|
+| before | 0.5 | 0.2 | 0.3 |
+| after | 0.625 | **0.0** | 0.375 |
+
+TTR's 0.2 is split between the other two measures in their existing 5:3
+ratio, so the style signal still runs 0–1. Nothing else changed: no
+thresholds, no combining rule, no model signal, no route.
+
+**Which diagnosis pointed at it:** Miss 1. TTR runs backwards on AI prose
+(0.87–0.90, above its 0.85 "very human" anchor), so it contributed 0 on
+every AI text. That capped the style signal at 0.80, and the `ai` label
+(0.90) became unreachable unless the model signal hit 1.00. TTR was
+already the measure I distrusted in unit 7 ("all it reliably detects is
+plain writing"). Removing it targets the ceiling directly and doesn't
+touch the threshold that protects writers.
+
+I previewed the change on the before-run inputs (scored offline, no files
+changed) before making it. The preview predicted the trade below, and the
+re-runs confirmed it exactly.
 
 ### Attack Run — After
 
-<!-- Same format. `run_attacks.py --label after` -->
+Run with `python run_attacks.py --set attack_set --label after` (full output:
+[results/attack_run_2026-11-10_2243_after.md](results/attack_run_2026-11-10_2243_after.md)).
+Same marking rule as the before run. All 26 malformed and flood rows came
+back with identical status codes and reasons (no 5xx, same 429 pattern),
+so only the scored rows are shown.
 
+| ID | Targeting | Before: guess / score | After: guess / score | Verdict before → after |
+|---|---|---|---|---|
+| EV01 | typos raise word variety | unsure 0.491 | unsure 0.541 | HELD → HELD |
+| EV02 | broken-up sentences raise length spread | **human 0.348** | unsure 0.361 | **BROKE → HELD** |
+| EV03 | a pasted quotation | unsure 0.555 | unsure 0.610 | HELD → HELD |
+| EV04 | unusual words raise perplexity | unsure 0.706 | unsure 0.653 | HELD → HELD |
+| EV05 | heavy human editing pass | **human 0.286** | **human 0.318** | BROKE → BROKE |
+| EV06 | one very long sentence, one very short | unsure 0.437 | unsure 0.474 | HELD → HELD |
+| EV07 | padding with punctuation | unsure 0.420 | unsure 0.449 | HELD → HELD |
+| EV08 | below the token window | 400 | 400 | HELD → HELD |
+| EV09 | human opening bolted on | unsure 0.618 | unsure 0.685 | HELD → HELD |
+| EV10 | repeated stanza structure | unsure 0.893 | unsure 0.868 | HELD → HELD |
+| FP01 | plain human writing | unsure 0.598 | unsure 0.648 | HELD → HELD |
+| FP02 | formal register | unsure 0.781 | unsure 0.844 | HELD → HELD |
+| FP03 | non-native speaker, careful | unsure 0.751 | unsure 0.823 | HELD → HELD |
+| FP04 | student essay to a rubric | unsure 0.745 | unsure 0.812 | HELD → HELD |
+| FP05 | technical documentation | unsure 0.852 | unsure 0.852 | HELD → HELD |
+| FP06 | imitating a formal template | unsure 0.609 | unsure 0.741 | HELD → HELD |
+| FP07 | repeats a phrase deliberately | unsure 0.595 | unsure 0.564 | HELD → HELD |
+| FP08 | very short human submission | 400 | 400 | HELD → HELD |
+| PI01 | ignore the check | unsure 0.400 | unsure 0.442 | HELD → HELD |
+| PI02 | fake system message | **human 0.210** | **human 0.236** | BROKE → BROKE |
+| PI03 | instruction in the writer's voice | unsure 0.476 | unsure 0.520 | HELD → HELD |
+| PI04 | hostile label text | unsure 0.434 | unsure 0.480 | HELD → HELD |
+| PI05 | inject into the audit log | unsure 0.445 | unsure 0.476 | HELD → HELD |
+| PI06 | instruction plus human text | unsure 0.572 | unsure 0.626 | HELD → HELD |
+| MF01–RQ12, FL01 (32 rows) | malformed / flood | same codes | same codes | HELD → HELD |
 
+**Count: before 53 HELD / 3 BROKE → after 54 HELD / 2 BROKE.**
+
+### Run Log — After
+
+Run with `python run_eval.py --label after` (full output:
+[results/run_2026-11-10_2245_after.md](results/run_2026-11-10_2245_after.md)).
+All three trials were identical again.
+
+| Criterion | Target | Before (×3) | After Run 1 | After Run 2 | After Run 3 | Verdict after |
+|---|---|---|---|---|---|---|
+| 1. Own writing labelled AI | 0 of 10 | 0/10 | 0/10 | 0/10 | 0/10 | MET (incomplete set) |
+| 2. AI − human gap, no overlap | ≥ 0.30, none | 0.440, none | 0.507, none | 0.507, none | 0.507, none | MET (2 of 5 human) |
+| 3a. All three labels reachable | 3 of 3 | 2/3 (no `ai`) | 2/3 (no `human`) | 2/3 | 2/3 | **MISSED** |
+| 3b. Borderline unsure / formal not AI | ≥ 3 unsure, 0 AI | 3/3, 0 | 3/3, 0 | 3/3, 0 | 3/3, 0 | MET (3 of 5 texts) |
+| 4. Appeals + 404/409/400 | 10/10, 3/3 | 10/10, 3/3 | 10/10, 3/3 | 10/10, 3/3 | 10/10, 3/3 | MET |
+| 5. Malformed bodies | 8 of 8 | 8/8 | 8/8 | 8/8 | 8/8 | MET |
+
+What moved:
+- **Criterion 2:** clearly-AI mean went 0.802 → **0.895**. Clearly-human
+  mean went 0.362 → 0.388.
+- **Criterion 1:** my highest own piece (the lab report) went 0.807 →
+  **0.841**. That's still 0.059 under the `ai` label.
+- **Criterion 3(a):** 3 of the 5 clearly-AI texts now get `ai` (0.967,
+  0.946, 0.912). But my bus-stop paragraph went 0.341 → **0.355**, which is
+  just over the human line, so `human` now never appears.
 
 **Did it help, and how do I know:**
 
-<!-- Widening the unsure band usually fixes one problem and creates another.
-     Reporting that trade honestly is worth full credit. -->
+**Partly. It fixed what it targeted and broke something next to it, and
+the criterion it was meant to fix is still MISSED.**
+
+- **What it fixed.**
+  - The `ai` label now fires on ordinary chatbot prose, where before it
+    never did.
+  - EV02 moved from human to unsure. The style signal gained weight on
+    the AI side, so the same "Really." trick no longer pulls the average
+    under 0.35.
+  - Nothing got worse on the accusation side: 0 of 10 of my pieces and 0 of
+    7 false-positive attacks were called AI. FP05, the closest, stayed at
+    0.852.
+- **What it cost.** Raising the spread and punctuation weights pushes
+  *every* score up a little, human text included. My one casual piece that
+  earned `human` (0.341) now gets `unsure` (0.355). **After the change, the
+  only inputs labeled `human` in either run are EV05 and PI02, and both are
+  AI text.** That's worse than before. When the system says "we think a
+  person wrote this", it is now always wrong on my test set.
+- **Criterion 3(a) is still MISSED.** Before, the missing label was `ai`.
+  After, it's `human`. The criterion caught the trade, and it was right
+  to.
+- **Every human piece got closer to the line:** the lab report is now
+  0.841, FP02 0.844, FP03 0.823. Before the change, the 0.80 cap on the
+  style signal was quietly protecting formal writers. Taking it away
+  shrank their margin from about 0.09 to about 0.06.
+
+So the change helped on the AI side and cost real writers on the human
+side. My bus-stop piece sits 0.005 over the human line. That tells me the
+next problem is where `HUMAN_THRESHOLD` sits relative to casual human
+writing, not the style weights. I didn't change it, because that would be
+a second change measured in the same run.
 
 
 

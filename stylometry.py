@@ -193,9 +193,17 @@ PUNCT_RANGE = (0.0, 0.05)
 # clearly-AI text had the MOST varied vocabulary (0.91) and the plain human
 # text the least (0.77). All it reliably detects is plain writing, which is
 # the false positive I most want to avoid.
-WEIGHT_SPREAD = 0.5
-WEIGHT_TTR = 0.2
-WEIGHT_PUNCT = 0.3
+#
+# UNIT 8 IMPROVEMENT (the one change): TTR removed from the style signal.
+# Before: spread 0.5 / TTR 0.2 / punct 0.3. AI prose has varied vocabulary
+# (TTR 0.87–0.90, above the 0.85 "very human" anchor), so TTR contributed 0 on
+# AI text and capped the style signal at 0.80. With style stuck at 0.80 the
+# combined score could only reach AI_THRESHOLD (0.90) with model_score = 1.00,
+# so the ai label was unreachable for ordinary AI text (criterion 3a miss).
+# TTR's 0.2 is split between the other two in their existing 5:3 ratio.
+WEIGHT_SPREAD = 0.625
+WEIGHT_TTR = 0.0
+WEIGHT_PUNCT = 0.375
 
 TTR_WINDOW = 50
 MIN_SENTENCES_FOR_SPREAD = 3
