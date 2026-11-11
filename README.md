@@ -430,6 +430,48 @@ with the same `content_id` and `status: "under_review"`.
   The same input now lands in unsure at 0.405 (log, 06:19:27). My real human
   piece, with a 0.38 gap, still keeps its 0.307 human score.
 
+**Unit 8: how I used AI (Claude Code) in the testing unit**
+
+I used Claude Code much more heavily in this unit than in unit 7. In the
+order the milestones happened:
+
+- **Milestone 2: running and marking the attack set.**
+  - *Claude:* ran the full set against my service, then marked held/broke
+    using a rule it wrote down first (one rule per family), and picked the
+    ten log entries.
+  - *Me:* reviewed the marks. EV05 is the debatable one, and I kept it as
+    BROKE because the attack did what it set out to do.
+- **Milestone 3: building the test.**
+  - *Claude:* wrote `scenarios.py` and extended `run_eval.py` (the
+    `run_appeals` function, plus error code, timing and log-entry checks
+    for criterion 5). It wrote the ten clearly-AI paragraphs, which are
+    unedited Claude output on purpose.
+  - *Claude refused to write my "own writing" pieces*, because that would
+    have made criteria 1–3 meaningless. Instead, it searched my coursework
+    folder and my Google Drive for writing I already had, and copied it
+    word for word.
+  - *Me:* confirmed those pieces are mine. Where it couldn't find a piece
+    of the kind a criterion names, it recorded the gap instead of filling
+    it. That's why my test-set gaps table exists.
+- **Milestone 4: diagnosis.**
+  - *Claude:* re-scored each failing input one stage at a time, with and
+    without the attack's addition. That's how the 0.80 style-signal
+    ceiling and PI02's perplexity jump (22 → 105) turned up.
+  - *Me:* I can walk through each table in the Diagnoses section and say
+    which stage moved and why.
+- **Milestone 5: the improvement.**
+  - *Claude:* previewed the TTR change offline before making it, and the
+    preview predicted the trade-off (bus-stop piece losing `human`). The
+    full re-runs then confirmed it.
+  - *Me:* chose to keep that change and report the trade instead of
+    stacking a threshold change on top, because of the one-change rule.
+
+What I take from it: the AI was useful for running, measuring and finding
+mechanisms. The places it stopped itself mattered just as much: it wouldn't
+write my own writing, and it wouldn't change two things at once. Those are
+the same lines my How to Be an AI-Native Engineer guide draws: verify,
+don't trust, and stay the one making the calls.
+
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 
 ---
@@ -1052,12 +1094,96 @@ a second change measured in the same run.
 <!-- For each attack still getting through and each criterion still missed:
      what you'd do, and why you stopped. -->
 
+Everything below is still true after the improvement (the "after" runs).
 
+**1. PI02, fake "SYSTEM:" line → `human` (0.236). Still broken.**
+- *What I'd do:* score each line on its own as well as the whole text.
+  PI02's SYSTEM line drives the text's perplexity from 22 to 105 by itself.
+  A text where one line is wildly less predictable than the rest isn't
+  "human-sounding", it's two different things stuck together. When a single
+  line's perplexity is several times the rest, I'd cap the score at `unsure`
+  rather than letting it reach `human`. I'd also strip lines that look like
+  key=value metadata (`guess=human`) before scoring.
+- *Why I stopped:* the one-change rule. I'd also need to test it against real
+  writers first. A pasted quotation, a line of code, or a list heading also
+  differ sharply from the rest of a text, and EV03 (pasted quotation) shows
+  the attack set already probes that.
+
+**2. EV05, heavy human editing pass → `human` (0.318). I'd leave this one.**
+- *What I'd do:* nothing to the detector. The editor replaced most of the
+  wording and the rhythm, so both signals agree the text reads like a person
+  wrote it (gap 0.07), because one largely did. Catching it would mean
+  flagging text for sounding human, and that lands on real writers. If the
+  site needs to know about AI drafts, that's a disclosure policy, not a
+  threshold.
+- *Why I stopped:* I don't think it's a defect in what this service can
+  honestly claim to measure.
+
+**3. Criterion 3(a), all three labels reachable. Still MISSED (now `human` never appears).**
+- *What I'd do next:* nothing yet, on purpose. The obvious fix is raising
+  `HUMAN_THRESHOLD` from 0.35 to about 0.36, so my bus-stop piece (0.355)
+  gets `human` again. But EV02 sits at 0.361, so that would hand EV02 its
+  `human` label back. And today the **only** inputs that earn `human` are
+  two AI attacks (EV05, PI02). Raising the human threshold before fixing #1
+  would mostly reward attacks. The order I'd do it in:
+  1. Fix PI02-style filler (#1).
+  2. Re-run.
+  3. Only then move `HUMAN_THRESHOLD`, measured as its own change.
+- *The deeper problem:* neither signal can positively recognise human
+  writing. They only measure how un-AI-like the surface is, and filler
+  fakes that cheaply. I don't have a signal that rewards specific, personal
+  content. That's a third signal, which is out of scope for this unit.
+- *Why I stopped:* the one-change rule, and because moving the threshold now
+  would make the next measurement unreadable.
+
+**4. Formal human writing is 0.06 from an accusation.**
+- My lab report scores 0.841 after the change, FP02 0.844 and FP05 0.852.
+  None are labelled AI, so criterion 1 still holds. But the improvement cut
+  their margin from about 0.09 to about 0.06.
+- *What I'd do:* before shipping, add the short-even-sentences paragraph my
+  criterion 1 names. It scored 0.885 in unit 7 and is the most likely to
+  cross 0.90 now. If it does, I'd revert or soften the TTR change before
+  touching `AI_THRESHOLD`.
+- *Why I stopped:* I didn't have that piece as text (see the gaps table).
+
+**5. Gaps in my own test set.**
+- Criterion 2 ran on 2 of 5 human pieces. Criterion 3(b) had no
+  lightly-edited AI. Criterion 1 is missing one of its four named formal
+  types.
+- *What I'd do:* write or find those pieces, add them to `scenarios.py`,
+  and re-run both labels.
+- *Why I stopped:* I wouldn't fill them with text I didn't write. That would
+  make the false-positive criteria meaningless.
+
+**6. Smaller things the attack run exposed (no criterion attached):**
+- **RQ10 / RQ11 were never tested by my route.** A form-encoded body and a
+  `text/plain` JSON body have no `creator_id` the limiter can read, so they
+  count against my IP. Earlier no-creator rows had used up that minute, so
+  both got 429. *Fix:* re-send them alone to check my route's 400 path.
+- **Rotating `creator_id` beats the limiter.** Each request with a new id is
+  a new caller. *Fix:* also limit per address (for example 30/minute)
+  alongside the per-creator limit. *Why I stopped:* the rate limiter's
+  numbers are set and justified in Milestone 1, and I didn't change them
+  mid-unit.
+- **MF05's rejection reason is wrong.** A 4,000-character single word is
+  logged as `text_too_short` (it has fewer than 20 *words*). The outcome is
+  right, but someone reading the log would be misled. *Fix:* a separate
+  `not_enough_words` reason. *Why I stopped:* cosmetic, and it would be a
+  second change.
+- **FP08, a genuine 8-word post, gets a 400.** I'd keep that. A confident
+  label on 8 words would be made up. But the message should tell the
+  writer it's a length rule, not a judgment.
 
 **The trade I'd make if this ran for real:**
 
-<!-- Two sentences. Fewer wrong accusations means more AI text getting through.
-     Say which way you'd go and WHO PAYS FOR IT. -->
+I'd keep leaning toward fewer wrong accusations: a high `ai` threshold, a
+wide unsure band, and an AI label that names the appeal. That means a lot
+of AI text comes back "unsure" instead of "AI". The people who pay are the
+site and its readers, who get less protection, and honest writers, whose
+"we think a person wrote this" label means less when a pasted fake system
+line can earn it too. I'd still take that over a false accusation landing
+on a careful, formal, or second-language writer who has no way to prove
+they wrote their own work.
 
 
 
