@@ -602,19 +602,162 @@ is 0.05 below the `ai` label.
 
 <!-- Your five criteria across three trials. `run_eval.py --label before`. -->
 
+Run with `python run_eval.py --label before` on 2026-11-10. Full output:
+[results/run_2026-11-10_2227_before.md](results/run_2026-11-10_2227_before.md).
+Scenarios are in [scenarios.py](scenarios.py), and same thresholds as the attack run
+(`HUMAN_THRESHOLD = 0.35`, `AI_THRESHOLD = 0.90`).
+
+**How each criterion was tested**
+
+- **Criteria 1–3** send text through `POST /submit`. The "my own writing"
+  pieces are copied word for word from writing I already had before this
+  unit: the TEKnuova cover letter, my STAT 550 Lab 6 report, my "How to Be
+  an AI-Native Engineer" guide, my Kanso project description, and the two
+  casual paragraphs from unit 7. The clearly-AI texts are unedited Claude
+  output on ordinary prompts.
+- **Criterion 4.** `run_eval.py` only ever called `/submit`, so I **extended
+  it** with `run_eval.py::run_appeals` instead of testing by hand. Each trial
+  does three things:
+  - Submits 10 texts and appeals each one by its real `content_id`.
+  - Re-reads `GET /log` to check the appeal entry (reasoning word for word,
+    `under_review`) and that the original decision entry is unchanged.
+  - Sends the three appeals that must fail: a made-up id, a second appeal,
+    and blank reasoning on a fresh submission.
+- **Criterion 5** sends the 8 bodies in criteria.md as raw bodies. For each,
+  `run_eval.py::main` now also records the error code, the response time,
+  and how many audit log entries it wrote.
+
+**Gaps in my test set** (recorded, not filled with made-up writing):
+
+| Criterion | Asks for | I had | Missing |
+|---|---|---|---|
+| 1 | 10 own pieces, incl. cover letter, lab report, how-to, **short-even-sentences** | 10 pieces (2 casual, 8 formal), 3 of the 4 named types | the short-even-sentences paragraph |
+| 2 | 5 clearly-human casual pieces | 2 | 3 |
+| 3(b) | 2 lightly-edited AI + 3 formal human | 3 formal human | both lightly-edited AI |
+
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |
+| 1. My own writing labelled high-confidence AI | 0 of 10 | 0/10 | 0/10 | 0/10 | MET (on an incomplete set, see gaps) |
+| 2. Clearly-AI minus clearly-human mean, and no overlap | gap ≥ 0.30, no human > any AI | gap 0.440, no overlap | gap 0.440, no overlap | gap 0.440, no overlap | MET (human set is 2 of 5) |
+| 3a. All three labels reachable across c2 + c3 texts | 3 of 3 | 2/3 (no `ai`) | 2/3 | 2/3 | **MISSED** |
+| 3b. Borderline texts unsure / formal human not AI | ≥ 3 of 5 unsure, 0 formal AI | 3/3 unsure, 0 AI | 3/3, 0 AI | 3/3, 0 AI | MET on 3 of 5 texts (lightly-edited AI not tested) |
+| 4. Appeals recorded and change status, plus 404/409/400 | 10 of 10, 3 of 3 | 10/10, 3/3 | 10/10, 3/3 | 10/10, 3/3 | MET |
+| 5. Malformed bodies get the contract's 4xx, no decision, logged, < 2 s | 8 of 8 | 8/8 (max 0.034 s) | 8/8 (max 0.032 s) | 8/8 (max 0.028 s) | MET |
 
-**Real output from one trial**, pasted as text, naming the file and function
-that produced it:
+**Criterion 3 overall: MISSED.** Part (a) failed in every trial.
+
+**How I decided each verdict**
+
+- **Criterion 1.** None of the 10 pieces got `ai` in any trial, which meets
+  the target. The highest was my lab report at 0.807. I still don't count
+  it as a clean pass, because the piece most likely to break it is missing.
+  In unit 7 my short-even-sentences paragraph scored 0.885, only 0.015
+  below the `ai` label.
+- **Criterion 2.** In all three trials the gap was 0.802 − 0.362 = 0.440,
+  above 0.30. The lowest AI piece (0.683) beat the highest human piece
+  (0.383), so there was no overlap. Both parts hold, but only on 2 human
+  pieces, so the "no overlap" half is a weak check.
+- **Criterion 3(a).** The 10 texts from criterion 2 plus the borderline ones
+  produced only `human` and `unsure`. Even the most AI-like chatbot
+  paragraph (0.867) stayed under 0.90. Since part (a) has to hold in every
+  trial, this is a miss.
+- **Criteria 4 and 5.** Every check passed in every trial. These are
+  mechanical pass/fail checks, so there is no generous reading to argue
+  about.
+
+**The three trials were identical** down to the fourth decimal on every
+score. That's expected, because neither signal is random. It shows the
+results hold rather than turning up once.
+
+One thing I noticed: my grandmother/buttons paragraph scored **0.383
+(unsure)**. My unit 7 calibration table has it at 0.307 (human), but that
+run predates my final combining rule. Today it gets `unsure`, so only 1 of
+my 10 pieces earns the `human` label.
+
+**Real output from trial 1** (produced by `run_eval.py::main` and
+`run_eval.py::run_appeals` calling `app.py::submit` / `app.py::appeal`;
+label text cut to 60 characters here, full text in the results file):
+
+*Criterion 1: the casual piece that got `human`, and the highest-scoring piece (my lab report):*
 
 ```json
+[
+  {"status": 200, "guess": "human", "confidence": 0.3414, "model_score": 0.5732, "style_score": 0.1095,
+   "label": "We think this was written by a person. Our check found the k…",
+   "sent": "The 7 bus was late again — twenty minutes, in the rain, with no shelte"},
+  {"status": 200, "guess": "unsure", "confidence": 0.8074, "model_score": 0.6926, "style_score": 0.9221,
+   "label": "We can't tell whether this was written by a person or with A…",
+   "sent": "The true expected value of the hypotenuse is about 0.7071, and the tru"}
+]
+```
 
+*Criterion 2: the lowest-scoring AI piece and the highest-scoring human piece (the closest pair):*
+
+```json
+[
+  {"status": 200, "guess": "unsure", "confidence": 0.6832, "model_score": 0.773, "style_score": 0.5933,
+   "label": "We can't tell whether this was written by a person or with A…",
+   "sent": "Reading books provides numerous advantages that extend far beyond ente"},
+  {"status": 200, "guess": "unsure", "confidence": 0.3831, "model_score": 0.4661, "style_score": 0.3,
+   "label": "We can't tell whether this was written by a person or with A…",
+   "sent": "My grandmother kept a jar of buttons on the windowsill, and every Sund"}
+]
+```
+
+*Criterion 3: the highest-scoring AI piece in the whole run (still not `ai`), and a borderline formal piece:*
+
+```json
+[
+  {"status": 200, "guess": "unsure", "confidence": 0.8674,
+   "sent": "Regular exercise offers a wide range of benefits for both physical and"},
+  {"status": 200, "guess": "unsure", "confidence": 0.8074, "model_score": 0.6926, "style_score": 0.9221,
+   "label": "We can't tell whether this was written by a person or with A…",
+   "sent": "The true expected value of the hypotenuse is about 0.7071, and the tru"}
+]
+```
+
+*Criterion 4: one appeal, then the three that must fail:*
+
+```json
+[
+  {"check": "appeal", "item": 1, "submit_status": 200,
+   "content_id": "bf664648-b93e-45f6-bf7e-9e3d561b2f84", "guess": "unsure",
+   "appeal_http": 200, "appeal_status": "under_review", "appeal_entries_in_log": 1,
+   "reasoning_verbatim": true, "log_status": "under_review", "decision_unchanged": true,
+   "appeal_log_entry": {"content_id": "bf664648-b93e-45f6-bf7e-9e3d561b2f84",
+     "creator_id": "eval_c4_t1_1_222639", "event": "appeal",
+     "reasoning": "I wrote this myself and I'd like a person to review it. (item 1, trial 1)",
+     "status": "under_review", "timestamp": "2026-11-11T06:26:40+00:00"},
+   "pass": true},
+  {"check": "unknown id → 404", "expected": "404 unknown_content_id",
+   "http": 404, "error": "unknown_content_id", "appeal_entries_in_log": 0, "pass": true},
+  {"check": "second appeal → 409", "expected": "409 already_under_review",
+   "http": 409, "error": "already_under_review", "appeal_entries_in_log": 1, "pass": true},
+  {"check": "blank reasoning → 400", "expected": "400 missing_reasoning",
+   "http": 400, "error": "missing_reasoning", "appeal_entries_in_log": 0, "pass": true}
+]
+```
+
+*Criterion 5: empty text, no creator_id, and the 50,000-word body:*
+
+```json
+[
+  {"status": 400, "guess": null, "label": null, "sent": "(empty text)",
+   "expected": "400 missing_text", "error": "missing_text", "content_id": null,
+   "elapsed_s": 0.034, "log_entries_written": 1,
+   "log_entry": {"creator_id": "eval_c5_empty", "event": "rejected", "reason": "missing_text",
+                 "status": "rejected", "timestamp": "2026-11-11T06:26:58+00:00"}},
+  {"status": 400, "guess": null, "label": null,
+   "expected": "400 missing_creator_id", "error": "missing_creator_id", "content_id": null,
+   "elapsed_s": 0.018, "log_entries_written": 1,
+   "log_entry": {"creator_id": "unknown", "event": "rejected", "reason": "missing_creator_id",
+                 "status": "rejected", "timestamp": "2026-11-11T06:26:58+00:00"}},
+  {"status": 413, "guess": null, "label": null, "sent": "word word word word word word ...",
+   "expected": "413 text_too_long", "error": "text_too_long", "content_id": null,
+   "elapsed_s": 0.015, "log_entries_written": 1,
+   "log_entry": {"creator_id": "eval_c5_huge", "event": "rejected", "reason": "text_too_long",
+                 "status": "rejected", "text_length": 250000, "timestamp": "2026-11-11T06:26:59+00:00"}}
+]
 ```
 
 **Diagnoses**

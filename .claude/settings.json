@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "PowerShell(Import-Csv attack_set/attacks.csv | Where-Object { $_.id -in 'EV02','EV05','EV08','PI02','FP08','EV10','FP05' } | ForEach-Object { \"== $\\($_.id\\) [$\\($_.targets\\)]`n$\\($_.text\\)`n\" }; Import-Csv attack_set/attacks_malformed_requests.csv | Where-Object { $_.id -in 'RQ10','RQ11','FL01_01' } | Format-List)",
-      "PowerShell(curl.exe -s \"http://127.0.0.1:5000/log?limit=200\" -o results/audit_extract.json; \\(Get-Item results/audit_extract.json\\).Length; $e = Get-Content logs/audit.jsonl | Select-Object -Skip 41; $e | Select-String 'attacker_EV02\"|attacker_EV05\"|attacker_PI02\"|attacker_EV10\"|attacker_FP05\"|attacker_FP02\"' | % Line)"
+      "PowerShell(curl.exe -s \"http://127.0.0.1:5000/log?limit=200\" -o results/audit_extract.json; \\(Get-Item results/audit_extract.json\\).Length; $e = Get-Content logs/audit.jsonl | Select-Object -Skip 41; $e | Select-String 'attacker_EV02\"|attacker_EV05\"|attacker_PI02\"|attacker_EV10\"|attacker_FP05\"|attacker_FP02\"' | % Line)",
+      "PowerShell(.venv\\\\Scripts\\\\python.exe \"C:\\\\Users\\\\17602\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\4aaf837663be5291\\\\c8b16138-1132-40ad-b5cd-c26404658748\\\\scratchpad\\\\harness_check.py\")",
+      "PowerShell(Get-ChildItem \"$HOME\\\\Documents\\\\SDSU\" -Directory -Name; \"--- Documents root\"; Get-ChildItem \"$HOME\\\\Documents\" -File -Name | Select-Object -First 60)",
+      "PowerShell($s = \"$HOME\\\\Documents\\\\SDSU\"; .venv\\\\Scripts\\\\python.exe -I \"C:\\\\Users\\\\17602\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\4aaf837663be5291\\\\c8b16138-1132-40ad-b5cd-c26404658748\\\\scratchpad\\\\extract_docx.py\" \"$s\\\\summer2k26\\\\STAT 550\\\\Labs\\\\Lab5_LuisVillalon.docx\" \"$s\\\\summer2k26\\\\STAT 550\\\\Labs\\\\lab6_LuisVillalon.docx\" \"$s\\\\summer2k26\\\\STAT 550\\\\assignments\\\\RCodingAssignment4LuisVillalon.docx\" \"$s\\\\summer2k26\\\\STAT 550\\\\assignments\\\\RCodingAssignment5_LuisVillalon.docx\" \"$s\\\\summer2k26\\\\STAT 550\\\\hw10\\\\hw10.docx\" \"$s\\\\FALL 2025\\\\CS210\\\\ha4\\\\ha4.docx\")",
+      "PowerShell($env:PYTHONIOENCODING='utf-8'; $s = \"$HOME\\\\Documents\\\\SDSU\"; .venv\\\\Scripts\\\\python.exe -I \"C:\\\\Users\\\\17602\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\4aaf837663be5291\\\\c8b16138-1132-40ad-b5cd-c26404658748\\\\scratchpad\\\\extract_docx.py\" \"$s\\\\summer2k26\\\\STAT 550\\\\Labs\\\\lab6_LuisVillalon.docx\" \"$s\\\\summer2k26\\\\STAT 550\\\\hw10\\\\hw10.docx\" \"$s\\\\FALL 2025\\\\CS210\\\\ha4\\\\ha4.docx\" | Select-String -NotMatch '<-|\\\\\\(|=|\\\\{' ; \"--- pypdf?\"; .venv\\\\Scripts\\\\python.exe -c \"import pypdf; print\\('yes'\\)\" 2>&1)",
+      "mcp__claude_ai_Google_Drive__search_files",
+      "mcp__claude_ai_Google_Drive__read_file_content",
+      "PowerShell($env:PYTHONIOENCODING='utf-8'; .venv\\\\Scripts\\\\python.exe -I \"C:\\\\Users\\\\17602\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\4aaf837663be5291\\\\c8b16138-1132-40ad-b5cd-c26404658748\\\\scratchpad\\\\score_run.py\" results\\\\run_2026-11-10_2227_before.md)"
     ]
   }
 }

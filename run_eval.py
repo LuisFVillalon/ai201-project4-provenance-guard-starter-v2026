@@ -25,6 +25,7 @@ import argparse
 import datetime as dt
 import json
 import sys
+import time
 from pathlib import Path
 
 import config
@@ -64,6 +65,131 @@ def describe(body):
         text = body["text"]
         return text[:70] if text else "(empty text)"
     return json.dumps(body)[:120]
+
+
+def log_count(requests, args):
+    """How many entries the audit log holds right now (from GET /health)."""
+    return requests.get(f"{args.url}/health", timeout=10).json()["log_entries"]
+
+
+def last_log_entry(requests, args):
+    entries = requests.get(f"{args.url}/log", params={"limit": 1}, timeout=10).json()["entries"]
+    return entries[-1] if entries else None
+
+
+def log_entries_for(requests, args, content_id):
+    """Every audit log entry carrying this content_id, oldest first."""
+    entries = requests.get(f"{args.url}/log", timeout=30).json()["entries"]
+    return [e for e in entries
+            if e.get("content_id") == content_id or e.get("attempted_content_id") == content_id]
+
+
+def run_appeals(requests, args, scenario, trial):
+    """
+    Criterion 4: submit each text, appeal it with the content_id that came back,
+    and check GET /log for the appeal entry and the untouched decision entry.
+    Then the three appeals that must fail loudly: an unknown id (404), a second
+    appeal (409), and blank reasoning (400).
+
+    Added in unit 8 because run_eval.py otherwise only ever calls /submit.
+    """
+    spec = scenario["appeals"]
+    url = args.url
+    stamp = dt.datetime.now().strftime("%H%M%S")
+    results = []
+
+    def submit(text, n):
+        body = {"text": text, "creator_id": f"eval_c4_t{trial}_{n}_{stamp}"}
+        response = requests.post(f"{url}/submit", json=body, timeout=args.timeout)
+        return response.status_code, response.json()
+
+    appealed = []
+    for n, text in enumerate(spec["texts"], 1):
+        reasoning = f"{spec['reasoning']} (item {n}, trial {trial})"
+        row = {"check": "appeal", "item": n, "sent": describe({"text": text, "creator_id": ""})}
+        try:
+            submit_status, submitted = submit(text, n)
+            content_id = submitted.get("content_id")
+            row.update({"submit_status": submit_status, "content_id": content_id,
+                        "guess": submitted.get("guess")})
+            before = [e for e in log_entries_for(requests, args, content_id)
+                      if e.get("status") == "decided"]
+
+            response = requests.post(f"{url}/appeal", timeout=30,
+                                     json={"content_id": content_id, "reasoning": reasoning})
+            reply = response.json()
+            after = log_entries_for(requests, args, content_id)
+            appeal_entries = [e for e in after if e.get("event") == "appeal"]
+            decided_after = [e for e in after if e.get("status") == "decided"]
+
+            row.update({
+                "appeal_http": response.status_code,
+                "appeal_status": reply.get("status"),
+                "appeal_entries_in_log": len(appeal_entries),
+                "reasoning_verbatim": bool(appeal_entries)
+                                      and appeal_entries[-1].get("reasoning") == reasoning,
+                "log_status": appeal_entries[-1].get("status") if appeal_entries else None,
+                "decision_unchanged": len(before) == 1 and decided_after == before,
+                "appeal_log_entry": appeal_entries[-1] if appeal_entries else None,
+            })
+            row["pass"] = (response.status_code == 200
+                           and reply.get("status") == "under_review"
+                           and len(appeal_entries) == 1
+                           and row["reasoning_verbatim"]
+                           and row["log_status"] == "under_review"
+                           and row["decision_unchanged"])
+            if row["pass"]:
+                appealed.append(content_id)
+        except Exception as exc:  # noqa: BLE001
+            row.update({"pass": False, "error": f"{type(exc).__name__}: {exc}"})
+        results.append(row)
+
+    def bad_appeal(check, body, want_http, want_error, content_id):
+        row = {"check": check, "sent": body, "expected": f"{want_http} {want_error}"}
+        try:
+            response = requests.post(f"{url}/appeal", json=body, timeout=30)
+            reply = response.json()
+            appeal_entries = [e for e in log_entries_for(requests, args, content_id)
+                              if e.get("event") == "appeal"]
+            row.update({"http": response.status_code, "error": reply.get("error"),
+                        "appeal_entries_in_log": len(appeal_entries)})
+            row["pass"] = response.status_code == want_http and reply.get("error") == want_error
+            return row, appeal_entries
+        except Exception as exc:  # noqa: BLE001
+            row.update({"pass": False, "error": f"{type(exc).__name__}: {exc}"})
+            return row, None
+
+    fake_id = f"not-a-real-id-t{trial}-{stamp}"
+    row, entries = bad_appeal("unknown id → 404",
+                              {"content_id": fake_id, "reasoning": spec["reasoning"]},
+                              404, "unknown_content_id", fake_id)
+    row["pass"] = row["pass"] and entries == []   # and NO appeal entry written
+    results.append(row)
+
+    if appealed:
+        first = appealed[0]
+        row, entries = bad_appeal("second appeal → 409",
+                                  {"content_id": first, "reasoning": spec["reasoning"]},
+                                  409, "already_under_review", first)
+        row["pass"] = row["pass"] and entries is not None and len(entries) == 1
+        results.append(row)
+    else:
+        results.append({"check": "second appeal → 409", "pass": False,
+                        "error": "no successful appeal to repeat"})
+
+    # Blank reasoning on a fresh, never-appealed submission, so a 409 can't mask it.
+    try:
+        _, fresh = submit(spec["texts"][0], "blank")
+        fresh_id = fresh.get("content_id")
+        row, entries = bad_appeal("blank reasoning → 400",
+                                  {"content_id": fresh_id, "reasoning": "   "},
+                                  400, "missing_reasoning", fresh_id)
+        row["pass"] = row["pass"] and entries == []
+    except Exception as exc:  # noqa: BLE001
+        row = {"check": "blank reasoning → 400", "pass": False,
+               "error": f"{type(exc).__name__}: {exc}"}
+    results.append(row)
+    return results
 
 
 def main():
@@ -112,14 +238,27 @@ def main():
 
         trials = []
         for trial in range(1, args.trials + 1):
+            if scenario.get("appeals"):
+                results = run_appeals(requests, args, scenario, trial)
+                trials.append(results)
+                items = [r for r in results if r["check"] == "appeal"]
+                extras = [r for r in results if r["check"] != "appeal"]
+                print(f"  trial {trial}: {sum(r['pass'] for r in items)}/{len(items)} appeals ok; "
+                      + ", ".join(f"{r['check']} {'ok' if r['pass'] else 'FAIL'}" for r in extras))
+                continue
+
             results = []
+            expect = scenario.get("expect") or []
             for i, body in enumerate(bodies_for(scenario), 1):
                 preview = describe(body)
                 try:
+                    log_before = log_count(requests, args)
+                    started = time.perf_counter()
                     response = requests.post(f"{args.url}/submit", json=body,
                                              timeout=args.timeout)
+                    elapsed = time.perf_counter() - started
                     payload = response.json() if response.content else {}
-                    results.append({
+                    result = {
                         "status": response.status_code,
                         "guess": payload.get("guess"),
                         "confidence": payload.get("confidence"),
@@ -127,14 +266,30 @@ def main():
                         "style_score": payload.get("style_score"),
                         "label": payload.get("label"),
                         "sent": preview,
-                    })
+                    }
+                    if scenario.get("bodies"):
+                        # Criterion 5 needs more than the scores: the error code,
+                        # whether a decision leaked out, the time, and the log entry.
+                        last = last_log_entry(requests, args)
+                        result.update({
+                            "expected": expect[i - 1] if i <= len(expect) else None,
+                            "error": payload.get("error"),
+                            "content_id": payload.get("content_id"),
+                            "elapsed_s": round(elapsed, 3),
+                            "log_entries_written": log_count(requests, args) - log_before,
+                            "log_entry": last,
+                        })
+                    results.append(result)
                 except Exception as exc:  # noqa: BLE001
                     results.append({"status": None, "error": f"{type(exc).__name__}: {exc}",
                                     "sent": preview})
 
             trials.append(results)
-            guesses = [r.get("guess") or "—" for r in results]
-            print(f"  trial {trial}: {', '.join(guesses)}")
+            if scenario.get("bodies"):
+                summary = [f"{r.get('status')} {r.get('error') or '—'}" for r in results]
+            else:
+                summary = [r.get("guess") or "—" for r in results]
+            print(f"  trial {trial}: {', '.join(summary)}")
 
         rows.append({"scenario": scenario, "trials": trials})
 
