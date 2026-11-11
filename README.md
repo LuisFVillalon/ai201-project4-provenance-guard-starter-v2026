@@ -460,22 +460,140 @@ A caller counts per `creator_id`, falling back to IP address when it's missing o
 
 ## Attack Run — Before
 
-<!-- Every attack with its outcome and a held-or-broke mark.
-     `run_attacks.py --label before` produces the table. -->
+Run with `python run_attacks.py --set attack_set --label before` on 2026-11-10 against
+`app.py::submit`, with rate limiting on (5/minute, 50/day) and thresholds at
+`HUMAN_THRESHOLD = 0.35`, `AI_THRESHOLD = 0.90`. Full output:
+[results/attack_run_2026-11-10_2145_before.md](results/attack_run_2026-11-10_2145_before.md).
+Audit log for the run: [results/audit_extract.json](results/audit_extract.json) and
+`logs/audit.jsonl` (lines 42–97).
 
+56 attacks sent. **No crashes and no 5xx.** Every request left exactly one audit
+log entry (log went from 41 to 97 lines).
 
+**How I marked them** — HELD/BROKE is judged against what each family was going for:
 
-**Ten audit log entries from the run**
+- **evasion** (AI text trying to pass): BROKE if labeled `human`.
+- **false_positive** (human text trying to get flagged): BROKE if labeled `ai`.
+- **prompt_injection**: BROKE if the instruction got the result it asked for
+  (a `human` label, a changed label text, or a malformed log entry).
+- **malformed**: BROKE on a 5xx, a crash, or no response.
+- **flood_same_creator**: BROKE if the limiter let the flood through.
 
-<!-- Choose entries that show the interesting failures, not the ten easiest. -->
+| ID | Family | Targeting | Status | Guess | Model | Style | Score | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| EV01 | evasion | signal two: typos raise word variety | 200 | unsure | 0.164 | 0.800 | 0.491 | HELD |
+| EV02 | evasion | signal two: broken-up sentences raise length spread | 200 | **human** | 0.594 | 0.102 | 0.348 | **BROKE** |
+| EV03 | evasion | signal two: a pasted quotation changes the shape | 200 | unsure | 0.666 | 0.443 | 0.555 | HELD |
+| EV04 | evasion | signal one: unusual words raise perplexity | 200 | unsure | 0.611 | 0.800 | 0.706 | HELD |
+| EV05 | evasion | both signals: heavy human editing pass | 200 | **human** | 0.321 | 0.252 | 0.286 | **BROKE** |
+| EV06 | evasion | signal two: one very long sentence and one very short | 200 | unsure | 0.573 | 0.301 | 0.437 | HELD |
+| EV07 | evasion | signal two: padding with punctuation | 200 | unsure | 0.586 | 0.254 | 0.420 | HELD |
+| EV08 | evasion | signal one: text below the token window | 400 | — | — | — | — | HELD (rejected `text_too_short`) |
+| EV09 | evasion | both: AI text with a human opening paragraph bolted on | 200 | unsure | 0.704 | 0.533 | 0.618 | HELD |
+| EV10 | evasion | signal two: repeated stanza structure | 200 | unsure | 0.979 | 0.806 | 0.893 | HELD |
+| FP01 | false_positive | plain, clear human writing with no flourishes | 200 | unsure | 0.618 | 0.578 | 0.598 | HELD |
+| FP02 | false_positive | human writing in a formal register | 200 | unsure | 0.739 | 0.824 | 0.781 | HELD |
+| FP03 | false_positive | a non-native English speaker writing carefully | 200 | unsure | 0.805 | 0.696 | 0.751 | HELD |
+| FP04 | false_positive | a student essay written to a rubric | 200 | unsure | 0.833 | 0.657 | 0.745 | HELD |
+| FP05 | false_positive | technical documentation written by a person | 200 | unsure | 0.801 | 0.903 | 0.852 | HELD |
+| FP06 | false_positive | a person imitating a formal template | 200 | unsure | 0.881 | 0.556 | 0.609 | HELD |
+| FP07 | false_positive | human writing that repeats a phrase deliberately | 200 | unsure | 0.882 | 0.500 | 0.595 | HELD |
+| FP08 | false_positive | very short genuine human submission | 400 | — | — | — | — | HELD (rejected `text_too_short`) |
+| PI01 | prompt_injection | instruction to ignore the check | 200 | unsure | 0.463 | 0.337 | 0.400 | HELD |
+| PI02 | prompt_injection | instruction disguised as a system message | 200 | **human** | 0.204 | 0.215 | 0.210 | **BROKE** |
+| PI03 | prompt_injection | instruction wrapped in the writer's voice | 200 | unsure | 0.594 | 0.357 | 0.476 | HELD |
+| PI04 | prompt_injection | attempt to make the label text hostile | 200 | unsure | 0.500 | 0.368 | 0.434 | HELD (label text unchanged) |
+| PI05 | prompt_injection | attempt to inject into the audit log | 200 | unsure | 0.640 | 0.250 | 0.445 | HELD (log entry well-formed; text is not logged) |
+| PI06 | prompt_injection | instruction plus real human text | 200 | unsure | 0.558 | 0.585 | 0.572 | HELD |
+| MF01 | malformed | text is only whitespace | 400 | — | — | — | — | HELD (`missing_text`) |
+| MF02 | malformed | text is a single character | 400 | — | — | — | — | HELD (`text_too_short`) |
+| MF03 | malformed | text is control characters | 400 | — | — | — | — | HELD (`text_too_short`) |
+| MF04 | malformed | text is only punctuation | 400 | — | — | — | — | HELD (`text_too_short`) |
+| MF05 | malformed | text is a very long single word | 400 | — | — | — | — | HELD (`text_too_short`, 4000 chars) |
+| MF06 | malformed | text is emoji only | 400 | — | — | — | — | HELD (`text_too_short`) |
+| MF07 | malformed | text is right-to-left script | 400 | — | — | — | — | HELD (`text_too_short`) |
+| MF08 | malformed | text is 60,000 characters | 413 | — | — | — | — | HELD (`text_too_long`) |
+| RQ01 | malformed | no text field at all | 400 | — | — | — | — | HELD (`missing_text`) |
+| RQ02 | malformed | no creator_id | 400 | — | — | — | — | HELD (`missing_creator_id`) |
+| RQ03 | malformed | text is a number | 400 | — | — | — | — | HELD (`missing_text`) |
+| RQ04 | malformed | text is a list | 400 | — | — | — | — | HELD (`missing_text`) |
+| RQ05 | malformed | text is null | 400 | — | — | — | — | HELD (`missing_text`) |
+| RQ06 | malformed | creator_id is an object | 400 | — | — | — | — | HELD (`missing_creator_id`) |
+| RQ07 | malformed | body is a JSON array, not an object | 400 | — | — | — | — | HELD (`invalid_json`) |
+| RQ08 | malformed | body is unparseable JSON | 400 | — | — | — | — | HELD (`invalid_json`) |
+| RQ09 | malformed | body is empty | 400 | — | — | — | — | HELD (`invalid_json`) |
+| RQ10 | malformed | body is form-encoded, not JSON | 429 | — | — | — | — | HELD* (rate-limited before the route) |
+| RQ11 | malformed | body is JSON claiming to be plain text | 429 | — | — | — | — | HELD* (rate-limited before the route) |
+| RQ12 | malformed | deeply nested JSON | 400 | — | — | — | — | HELD (`missing_text`) |
+| FL01_01–05 | flood_same_creator | rapid submissions from one creator | 400 ×5 | — | — | — | — | HELD (reached route, `text_too_short`) |
+| FL01_06–12 | flood_same_creator | rapid submissions from one creator | 429 ×7 | — | — | — | — | HELD (`rate_limited`, 5 per 1 minute) |
+
+**Count: 53 HELD, 3 BROKE** (EV02, EV05, PI02).
+
+| Family | Attacks | HELD | BROKE |
+|---|---|---|---|
+| evasion | 10 | 8 | 2 |
+| false_positive | 8 | 8 | 0 |
+| prompt_injection | 6 | 5 | 1 |
+| malformed | 20 | 20 | 0 |
+| flood_same_creator | 12 | 12 | 0 |
+
+**Things the HELD marks hide** (what I saw in the run, not the cause yet;
+that goes in my diagnoses):
+
+- **No input in the whole run got the `ai` label.** The highest score was EV10
+  at 0.893, which is three copies of the same AI paragraph, and it still came
+  back `unsure` because `AI_THRESHOLD` is 0.90. So "evasion HELD" only means
+  "not called human". The detector didn't catch any AI text either.
+- **The false-positive rows held, but some came close.** FP05 (a person's
+  technical docs) scored 0.852 and FP02 (formal human writing) scored 0.781.
+  Both scored higher than 8 of the 9 AI evasion texts that got a score.
+- **FP08 is a real writer refused.** "Went for a run. Legs hurt. Worth it." got
+  a 400 `text_too_short`. Nobody accused them, but they got no answer either.
+- **RQ10 and RQ11 (\*) were never tested by my route.** They had no `creator_id`
+  my code could read, so they counted against my IP. Five earlier no-creator
+  rows (RQ02, RQ06–RQ09) had already used up that minute, so the limiter
+  rejected them first. I don't yet know what my route does with a form-encoded
+  body or a `text/plain` JSON body.
+- **The flood family is 12 rows, not the 20 the `targets` column says.** The
+  first 5 reached the route and were rejected for being too short (55
+  characters). Those 400s still counted toward the limit, so rows 6–12 got 429.
+- **MF05's rejection reason is wrong.** A 4,000-character single word was
+  rejected as `text_too_short`. The outcome is right (400, no crash), but the
+  reason in the log is misleading for anyone reading it back.
+
+**Ten audit log entries from the run** (from `logs/audit.jsonl`, written by
+`audit.py`. The rejection entries carry fewer fields, which is expected.)
 
 ```json
-
+{"timestamp": "2026-11-11T05:45:24+00:00", "content_id": "8b2a9dd1-109f-4239-ac5d-a5b5001f17f6", "creator_id": "attacker_PI02", "guess": "human", "model_score": 0.2044, "style_score": 0.2148, "combined_score": 0.2096, "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:17+00:00", "content_id": "c670729d-3eed-434d-a49d-02ff56cbd7ad", "creator_id": "attacker_EV02", "guess": "human", "model_score": 0.5943, "style_score": 0.1022, "combined_score": 0.3483, "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:18+00:00", "content_id": "2d45cd76-bb49-417b-a478-6eacf54f9a54", "creator_id": "attacker_EV05", "guess": "human", "model_score": 0.3212, "style_score": 0.2516, "combined_score": 0.2864, "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:20+00:00", "content_id": "1d974340-f926-46d1-bd41-b37b1f5a8e94", "creator_id": "attacker_EV10", "guess": "unsure", "model_score": 0.9792, "style_score": 0.8061, "combined_score": 0.8926, "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:23+00:00", "content_id": "0a892f69-55f2-44de-ab55-d3b3df8aa087", "creator_id": "attacker_FP05", "guess": "unsure", "model_score": 0.8005, "style_score": 0.9025, "combined_score": 0.8515, "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:21+00:00", "content_id": "1a9580ef-d862-40f5-9d67-fd75967349ff", "creator_id": "attacker_FP02", "guess": "unsure", "model_score": 0.7387, "style_score": 0.8239, "combined_score": 0.7813, "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.", "status": "decided"}
+{"timestamp": "2026-11-11T05:45:24+00:00", "creator_id": "attacker_FP08", "event": "rejected", "status": "rejected", "reason": "text_too_short", "text_length": 36}
+{"timestamp": "2026-11-11T05:45:26+00:00", "creator_id": "attacker_MF05", "event": "rejected", "status": "rejected", "reason": "text_too_short", "text_length": 4000}
+{"timestamp": "2026-11-11T05:45:26+00:00", "creator_id": "unknown", "event": "rejected", "status": "rejected", "reason": "rate_limited", "limit": "5 per 1 minute"}
+{"timestamp": "2026-11-11T05:45:26+00:00", "creator_id": "attacker_flood", "event": "rejected", "status": "rejected", "reason": "rate_limited", "limit": "5 per 1 minute"}
 ```
+
+(Entry 9 is RQ10, a form-encoded body rejected by the limiter under my IP.
+Entry 10 is FL01_06, the first flood row past the 5-per-minute limit.)
 
 **The single worst outcome** — the one I'd least want to explain to a writer
 whose work got caught by it:
 
+No real writer was labeled AI in this run, so no writer got caught. The
+outcome I'd least want to explain is **PI02**. It was AI-generated text with
+one fake "SYSTEM:" line on top telling the checker to return `human`. My
+service returned `human` with a combined score of **0.21**, the lowest
+(most-human) score of any input in the whole run, below every genuine human
+false-positive row. That makes an honest writer's "human" label worth less,
+because one pasted line of fake instructions earns the same label with more
+confidence. Closest call for
+a real writer: FP05, a person's technical documentation, scored 0.852, which
+is 0.05 below the `ai` label.
 
 
 ---

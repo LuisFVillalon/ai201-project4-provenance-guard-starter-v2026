@@ -1,0 +1,902 @@
+{
+  "count": 97,
+  "entries": [
+    {
+      "combined_score": 0.4661,
+      "content_id": "e21fb289-49b3-4434-be24-62d55136835f",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.4661,
+      "status": "decided",
+      "style_score": null,
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "creator_id": "luis_v",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "creator_id": "luis_v",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 10,
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "missing_creator_id",
+      "status": "rejected",
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "invalid_json",
+      "status": "rejected",
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "creator_id": "luis_v",
+      "event": "rejected",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "text_length": 25000,
+      "timestamp": "2026-11-04T06:03:18+00:00"
+    },
+    {
+      "combined_score": 0.7824,
+      "content_id": "abc6682d-37b6-433c-8a2c-8679ae8eb2a6",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.8584,
+      "status": "decided",
+      "style_score": 0.7064,
+      "timestamp": "2026-11-04T06:18:20+00:00"
+    },
+    {
+      "combined_score": 0.307,
+      "content_id": "d9d59572-27b5-46a6-b7af-44c6b56c2e2b",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.4958,
+      "status": "decided",
+      "style_score": 0.1182,
+      "timestamp": "2026-11-04T06:18:20+00:00"
+    },
+    {
+      "combined_score": 0.8466,
+      "content_id": "aa8bdf19-b842-4c63-bd2b-ab3d51976183",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.9025,
+      "status": "decided",
+      "style_score": 0.7907,
+      "timestamp": "2026-11-04T06:18:21+00:00"
+    },
+    {
+      "combined_score": 0.6001,
+      "content_id": "822f98e2-f5b6-4292-9b70-25b40f1ebe4e",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.7468,
+      "status": "decided",
+      "style_score": 0.4535,
+      "timestamp": "2026-11-04T06:18:21+00:00"
+    },
+    {
+      "combined_score": 0.3103,
+      "content_id": "ee6733f3-399d-44ca-aded-7d2d587c603d",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.6205,
+      "status": "decided",
+      "style_score": 0.0,
+      "timestamp": "2026-11-04T06:18:21+00:00"
+    },
+    {
+      "combined_score": 0.7824,
+      "content_id": "40c461a4-c361-4f08-a6e7-17a0dcd66a6a",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.8584,
+      "status": "decided",
+      "style_score": 0.7064,
+      "timestamp": "2026-11-04T06:19:26+00:00"
+    },
+    {
+      "combined_score": 0.307,
+      "content_id": "44eda6ec-5178-4879-b8cf-5762cc780b1e",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.4958,
+      "status": "decided",
+      "style_score": 0.1182,
+      "timestamp": "2026-11-04T06:19:27+00:00"
+    },
+    {
+      "combined_score": 0.8466,
+      "content_id": "34ef0608-9738-409e-afb7-2267ac4e3443",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.9025,
+      "status": "decided",
+      "style_score": 0.7907,
+      "timestamp": "2026-11-04T06:19:27+00:00"
+    },
+    {
+      "combined_score": 0.6001,
+      "content_id": "86fb26dc-34f2-444d-9bb1-a4996cd3f1e2",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.7468,
+      "status": "decided",
+      "style_score": 0.4535,
+      "timestamp": "2026-11-04T06:19:27+00:00"
+    },
+    {
+      "combined_score": 0.4051,
+      "content_id": "562ff5e7-72a5-4d48-875a-09fb08792abd",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "PLACEHOLDER: label text arrives in Milestone 5.",
+      "model_score": 0.6205,
+      "status": "decided",
+      "style_score": 0.0,
+      "timestamp": "2026-11-04T06:19:27+00:00"
+    },
+    {
+      "combined_score": 0.3414,
+      "content_id": "a87470b4-42e0-4efc-8d2e-cb0b7cdeee36",
+      "creator_id": "luis_v",
+      "guess": "human",
+      "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.",
+      "model_score": 0.5732,
+      "status": "decided",
+      "style_score": 0.1095,
+      "timestamp": "2026-11-04T06:25:13+00:00"
+    },
+    {
+      "combined_score": 0.8849,
+      "content_id": "d1e64954-6ab1-4321-9b33-ff05fe2e2ceb",
+      "creator_id": "luis_v",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8609,
+      "status": "decided",
+      "style_score": 0.9089,
+      "timestamp": "2026-11-04T06:25:14+00:00"
+    },
+    {
+      "combined_score": 0.9587,
+      "content_id": "c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf",
+      "creator_id": "luis_v",
+      "guess": "ai",
+      "label": "This writing closely matches patterns we often see in AI-generated text. Our check can be wrong, and simple, even writing by real people can look like this too. If you wrote it yourself, you can appeal and a person will review it.",
+      "model_score": 0.9527,
+      "status": "decided",
+      "style_score": 0.9648,
+      "timestamp": "2026-11-04T06:25:14+00:00"
+    },
+    {
+      "content_id": "c2cd4ce5-79cb-4ce7-943e-dfefe0becbcf",
+      "creator_id": "luis_v",
+      "event": "appeal",
+      "reasoning": "I wrote this myself for a 5th-grade health class handout. It is simple on purpose because the readers are ten years old.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T06:25:49+00:00"
+    },
+    {
+      "combined_score": 0.4044,
+      "content_id": "d8c89bcc-2f6b-4637-8b1f-ef8334392819",
+      "creator_id": "flood_tester",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.2588,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T01:18:53+00:00"
+    },
+    {
+      "combined_score": 0.4044,
+      "content_id": "7b28cfc1-936a-40ab-bb4d-fb3c426b2c17",
+      "creator_id": "flood_tester",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.2588,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T01:18:53+00:00"
+    },
+    {
+      "combined_score": 0.4044,
+      "content_id": "b0d60e52-f3d7-489e-be5c-64e9ea8df6af",
+      "creator_id": "flood_tester",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.2588,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T01:18:53+00:00"
+    },
+    {
+      "combined_score": 0.4044,
+      "content_id": "c3c2a684-7237-49f1-8e57-bd5834188e80",
+      "creator_id": "flood_tester",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.2588,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "combined_score": 0.4044,
+      "content_id": "31a2ceef-9e58-4079-8cd5-7353c70bcafe",
+      "creator_id": "flood_tester",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.2588,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:18:54+00:00"
+    },
+    {
+      "combined_score": 0.5194,
+      "content_id": "18b3c703-9d8a-4235-b147-4a2e666f063b",
+      "creator_id": "m1_check",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.4888,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T02:28:45+00:00"
+    },
+    {
+      "combined_score": 0.5194,
+      "content_id": "3d5e398f-a853-4ac8-9f47-23fa56c8ebc4",
+      "creator_id": "m1_check",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.4888,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T02:29:00+00:00"
+    },
+    {
+      "combined_score": 0.4821,
+      "content_id": "2b73d044-88a7-46f1-a733-2464eb6df9c2",
+      "creator_id": "m1_check",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.4142,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T02:29:00+00:00"
+    },
+    {
+      "combined_score": 0.6077,
+      "content_id": "f4e1954f-295d-40c2-8895-6dd25328a30c",
+      "creator_id": "m1_check",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8808,
+      "status": "decided",
+      "style_score": 0.55,
+      "timestamp": "2026-11-05T02:29:00+00:00"
+    },
+    {
+      "attempted_content_id": "does-not-exist",
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "unknown_content_id",
+      "status": "rejected",
+      "timestamp": "2026-11-05T02:32:35+00:00"
+    },
+    {
+      "attempted_content_id": "does-not-exist",
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "unknown_content_id",
+      "status": "rejected",
+      "timestamp": "2026-11-05T02:32:40+00:00"
+    },
+    {
+      "combined_score": 0.4909,
+      "content_id": "392d00fb-3e06-46b5-bd26-314ff81e659b",
+      "creator_id": "attacker_EV01",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.1635,
+      "status": "decided",
+      "style_score": 0.8,
+      "timestamp": "2026-11-11T05:45:16+00:00"
+    },
+    {
+      "combined_score": 0.3483,
+      "content_id": "c670729d-3eed-434d-a49d-02ff56cbd7ad",
+      "creator_id": "attacker_EV02",
+      "guess": "human",
+      "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.",
+      "model_score": 0.5943,
+      "status": "decided",
+      "style_score": 0.1022,
+      "timestamp": "2026-11-11T05:45:17+00:00"
+    },
+    {
+      "combined_score": 0.5548,
+      "content_id": "703150c9-1abc-4851-a51b-060b57724af8",
+      "creator_id": "attacker_EV03",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.6662,
+      "status": "decided",
+      "style_score": 0.4434,
+      "timestamp": "2026-11-11T05:45:17+00:00"
+    },
+    {
+      "combined_score": 0.7057,
+      "content_id": "d3d863e7-53b5-41a2-b20e-8e45c70f3761",
+      "creator_id": "attacker_EV04",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.6114,
+      "status": "decided",
+      "style_score": 0.8,
+      "timestamp": "2026-11-11T05:45:18+00:00"
+    },
+    {
+      "combined_score": 0.2864,
+      "content_id": "2d45cd76-bb49-417b-a478-6eacf54f9a54",
+      "creator_id": "attacker_EV05",
+      "guess": "human",
+      "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.",
+      "model_score": 0.3212,
+      "status": "decided",
+      "style_score": 0.2516,
+      "timestamp": "2026-11-11T05:45:18+00:00"
+    },
+    {
+      "combined_score": 0.4368,
+      "content_id": "5186ad4e-6ab7-4b84-9379-1d9c3d797595",
+      "creator_id": "attacker_EV06",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.5727,
+      "status": "decided",
+      "style_score": 0.3009,
+      "timestamp": "2026-11-11T05:45:19+00:00"
+    },
+    {
+      "combined_score": 0.42,
+      "content_id": "9caf6df3-15dc-4a62-be1c-5b705b2ff32a",
+      "creator_id": "attacker_EV07",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.5862,
+      "status": "decided",
+      "style_score": 0.2537,
+      "timestamp": "2026-11-11T05:45:19+00:00"
+    },
+    {
+      "creator_id": "attacker_EV08",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 65,
+      "timestamp": "2026-11-11T05:45:19+00:00"
+    },
+    {
+      "combined_score": 0.6183,
+      "content_id": "f2a3dc90-3f46-490f-8c3a-64fcac9beb90",
+      "creator_id": "attacker_EV09",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.7042,
+      "status": "decided",
+      "style_score": 0.5325,
+      "timestamp": "2026-11-11T05:45:20+00:00"
+    },
+    {
+      "combined_score": 0.8926,
+      "content_id": "1d974340-f926-46d1-bd41-b37b1f5a8e94",
+      "creator_id": "attacker_EV10",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.9792,
+      "status": "decided",
+      "style_score": 0.8061,
+      "timestamp": "2026-11-11T05:45:20+00:00"
+    },
+    {
+      "combined_score": 0.5975,
+      "content_id": "c858d9d5-515e-4cae-9db1-c9c284bbcfad",
+      "creator_id": "attacker_FP01",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.6175,
+      "status": "decided",
+      "style_score": 0.5775,
+      "timestamp": "2026-11-11T05:45:21+00:00"
+    },
+    {
+      "combined_score": 0.7813,
+      "content_id": "1a9580ef-d862-40f5-9d67-fd75967349ff",
+      "creator_id": "attacker_FP02",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.7387,
+      "status": "decided",
+      "style_score": 0.8239,
+      "timestamp": "2026-11-11T05:45:21+00:00"
+    },
+    {
+      "combined_score": 0.7507,
+      "content_id": "cdea43d1-ad1c-497e-b230-f53e57b0b884",
+      "creator_id": "attacker_FP03",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8051,
+      "status": "decided",
+      "style_score": 0.6963,
+      "timestamp": "2026-11-11T05:45:22+00:00"
+    },
+    {
+      "combined_score": 0.7447,
+      "content_id": "1cf40d9b-c1b5-4168-8aa4-19d8b13c1f44",
+      "creator_id": "attacker_FP04",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8329,
+      "status": "decided",
+      "style_score": 0.6565,
+      "timestamp": "2026-11-11T05:45:22+00:00"
+    },
+    {
+      "combined_score": 0.8515,
+      "content_id": "0a892f69-55f2-44de-ab55-d3b3df8aa087",
+      "creator_id": "attacker_FP05",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8005,
+      "status": "decided",
+      "style_score": 0.9025,
+      "timestamp": "2026-11-11T05:45:23+00:00"
+    },
+    {
+      "combined_score": 0.6094,
+      "content_id": "6a0757e2-db7b-4c5b-a511-5f26f320de8d",
+      "creator_id": "attacker_FP06",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8814,
+      "status": "decided",
+      "style_score": 0.556,
+      "timestamp": "2026-11-11T05:45:23+00:00"
+    },
+    {
+      "combined_score": 0.5954,
+      "content_id": "456351d6-a653-43cb-8445-db446c9a3df8",
+      "creator_id": "attacker_FP07",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.8816,
+      "status": "decided",
+      "style_score": 0.5,
+      "timestamp": "2026-11-11T05:45:24+00:00"
+    },
+    {
+      "creator_id": "attacker_FP08",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 36,
+      "timestamp": "2026-11-11T05:45:24+00:00"
+    },
+    {
+      "combined_score": 0.3999,
+      "content_id": "b35c083f-2d70-4900-a9db-56409b1b6c4b",
+      "creator_id": "attacker_PI01",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.4625,
+      "status": "decided",
+      "style_score": 0.3373,
+      "timestamp": "2026-11-11T05:45:24+00:00"
+    },
+    {
+      "combined_score": 0.2096,
+      "content_id": "8b2a9dd1-109f-4239-ac5d-a5b5001f17f6",
+      "creator_id": "attacker_PI02",
+      "guess": "human",
+      "label": "We think this was written by a person. Our check found the kind of variety and detail we usually see in human writing.",
+      "model_score": 0.2044,
+      "status": "decided",
+      "style_score": 0.2148,
+      "timestamp": "2026-11-11T05:45:24+00:00"
+    },
+    {
+      "combined_score": 0.4756,
+      "content_id": "b49acccc-4178-41ff-9ea3-80b867b5a98e",
+      "creator_id": "attacker_PI03",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.5943,
+      "status": "decided",
+      "style_score": 0.3569,
+      "timestamp": "2026-11-11T05:45:24+00:00"
+    },
+    {
+      "combined_score": 0.4339,
+      "content_id": "9bf015ba-7c96-47a3-98c9-b1a32f209dbe",
+      "creator_id": "attacker_PI04",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.4998,
+      "status": "decided",
+      "style_score": 0.368,
+      "timestamp": "2026-11-11T05:45:25+00:00"
+    },
+    {
+      "combined_score": 0.4451,
+      "content_id": "2c0e279b-3f1d-48bc-a3ed-4aa105657fb7",
+      "creator_id": "attacker_PI05",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.6401,
+      "status": "decided",
+      "style_score": 0.25,
+      "timestamp": "2026-11-11T05:45:25+00:00"
+    },
+    {
+      "combined_score": 0.5715,
+      "content_id": "3710e189-58f5-44b6-8221-7ba4dff0a41a",
+      "creator_id": "attacker_PI06",
+      "guess": "unsure",
+      "label": "We can't tell whether this was written by a person or with AI, so we aren't making a call. Lots of writing by real people lands here, especially plain or formal writing. This is not a sign that anything is wrong.",
+      "model_score": 0.5583,
+      "status": "decided",
+      "style_score": 0.5846,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF01",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF02",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 1,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF03",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 21,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF04",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 31,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF05",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 4000,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF06",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 200,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF07",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 105,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_MF08",
+      "event": "rejected",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "text_length": 57640,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ01",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "missing_creator_id",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ03",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ04",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ05",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "missing_creator_id",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "invalid_json",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "invalid_json",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "reason": "invalid_json",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ12",
+      "event": "rejected",
+      "reason": "missing_text",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 55,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 55,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 55,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 55,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "reason": "text_too_short",
+      "status": "rejected",
+      "text_length": 55,
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "5 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-11T05:45:26+00:00"
+    }
+  ]
+}
