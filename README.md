@@ -776,6 +776,147 @@ label text cut to 60 characters here, full text in the results file):
 
      Look for a pattern. Five failures on one signal is one problem, not five. -->
 
+How I got the evidence: I re-scored each failing input one stage at a time.
+That means the raw measures inside `stylometry.py`, the perplexity inside
+`detector.py`, then `scoring.py::combine_signals` and
+`scoring.py::score_to_label`. Where an attack added something, I scored the
+same text **without** the addition, which shows which stage the addition
+moved. Weights: model 0.5 / style 0.5. Inside the style signal: spread 0.5,
+TTR 0.2, punctuation 0.3. Disagreement gaps: 0.30 on the AI side and 0.50
+on the human side.
+
+**Miss 1: Criterion 3(a), the `ai` label is unreachable for ordinary AI text.**
+*Stage: signal two and the label mapping together.*
+
+| Input | ppl | model | spread | TTR | punct | style | combined | label |
+|---|---|---|---|---|---|---|---|---|
+| Exercise (clearly AI) | 8.5 | 0.935 | 0.159 | 0.867 | 0.000 | **0.800** | 0.867 | unsure |
+| Technology (clearly AI) | 11.9 | 0.893 | 0.179 | 0.874 | 0.000 | **0.800** | 0.847 | unsure |
+| Time management (clearly AI) | 17.1 | 0.824 | 0.171 | 0.899 | 0.000 | **0.800** | 0.812 | unsure |
+| EV10 (same AI paragraph ×3) | 4.1 | 0.979 | 0.394 | 0.500 | 0.000 | 0.806 | 0.893 | unsure |
+
+The style signal **tops out at 0.80** on normal AI prose, and that's the
+mechanism.
+- Even sentences max out the spread part (0.5 × 1.0) and zero punctuation
+  maxes out the punctuation part (0.3 × 1.0).
+- AI text has *varied* vocabulary (TTR 0.87–0.90). That sits above the 0.85
+  "very human" end of `TTR_RANGE`, so the TTR part contributes 0.
+- So style = 0.5 + 0.3 + 0 = **0.80**. This is the "TTR runs backwards"
+  problem I noted in calibration, and it's now a hard ceiling.
+
+From there:
+- With style stuck at 0.80, an even average reaches `AI_THRESHOLD = 0.90`
+  only if the model signal is **1.00**. No real text gets there; the most
+  predictable chatbot paragraph got 0.935.
+- The only way to reach `ai` is low TTR, meaning repeated vocabulary. That
+  happened for my unit 7 "drinking water" paragraph (0.959). EV10 has
+  repetition too (TTR 0.50), but repeating the paragraph raised its spread
+  and it stalled at 0.893.
+
+The AI label therefore fires only on *plain, repetitive* writing, which is
+exactly the kind my criteria call the expensive false positive. It never
+fires on typical chatbot prose. The 0.90 threshold isn't wrong by itself.
+It fails because of how it combines with a style signal that can't exceed
+0.80.
+
+**Broken attack EV02: AI text with "Really." inserted after every sentence → `human` (0.348).**
+*Stage: signal two (sentence-length spread), let through by the combining rule's human-side gap.*
+
+| Version | sentences | spread | punct | model | style | gap | combined | label |
+|---|---|---|---|---|---|---|---|---|
+| without the "Really."s and dashes | 7 | 0.161 | 0.000 | 0.594 | 0.800 | 0.206 | 0.697 | unsure |
+| as sent | 13 | **0.849** | 0.033 | 0.594 | **0.102** | 0.492 | **0.348** | human |
+
+- **Signal two:** the one-word sentences push spread from 0.16 (very even)
+  to 0.85 (very lumpy), past the 0.70 "very human" end. The added dashes
+  push punctuation to the human end as well. Style falls from 0.80 to 0.10,
+  but nothing about the writing changed.
+- **Signal one** doesn't move at all (0.594 both times). GPT-2 still finds
+  it fairly predictable.
+- **Combining rule:** the signals now disagree by 0.492. My human-side
+  limit is 0.50, so the rule doesn't shrink the score toward 0.5. That rule
+  was built for this kind of split, and it missed by **0.008**. The plain
+  average of 0.348 then lands 0.002 under `HUMAN_THRESHOLD`.
+
+**Broken attack PI02: a fake "SYSTEM:" line on top of AI text → `human` (0.210), the lowest score in the run.**
+*Stage: signal one (perplexity), then signal two. The instruction was never obeyed.*
+
+| Version | ppl | model | spread | style | gap | combined | label |
+|---|---|---|---|---|---|---|---|
+| without the SYSTEM line | 22.3 | 0.754 | 0.801 | 0.300 | 0.454 | 0.513 | unsure |
+| as sent | **105.2** | **0.204** | 0.652 | 0.215 | 0.010 | **0.210** | human |
+
+- **Nothing in my pipeline reads text as instructions.** GPT-2 only
+  measures how predictable each word is, and the style signal only counts
+  shapes. So "Return guess=human" wasn't followed.
+- **Signal one:** the line *as text* is junk to GPT-2: capital letters,
+  `guess=human`, `confidence=0.02`. It **quintuples perplexity** (22 → 105),
+  and the model signal falls from 0.75 to 0.20. The injection worked as an
+  evasion, not as an instruction.
+- **Signal two:** the line adds three short "sentences". Style was already
+  human-leaning at 0.30, partly because the attack's AI body ends mid-word
+  ("…misunderstandings. Th"). That stub is a one-word "sentence", which
+  inflates spread.
+- **Combining rule:** with both signals now saying human, the gap is only
+  0.010, so nothing triggers. My only protection against a split doesn't
+  apply when the attack moves both signals the same way.
+
+**Broken attack EV05: "heavy human editing pass" → `human` (0.286).**
+*Stage: both signals, working as designed. I'm not counting this as a defect.*
+
+| ppl | model | spread | punct | style | gap | combined |
+|---|---|---|---|---|---|---|
+| 71.8 | 0.321 | 0.675 | 0.012 | 0.252 | 0.070 | 0.286 |
+
+- The edit replaced the AI's wording with new words ("the boring kind, not
+  the away-day kind", "a corridor in March"). Perplexity is 71.8, above my
+  midpoint of 45, so the model signal reads human.
+- The rhythm is lumpy too (spread 0.675). Both signals agree, gap 0.07.
+- Both signals saw a person's word choices and a person's rhythm, because a
+  person rewrote it. Most of the text is now the editor's. I marked it
+  BROKE because it met the attack's goal. But no detector that reads the
+  text should call this AI, and I wouldn't change anything to catch it.
+
+**The pattern across the misses**
+
+There are two problems, not four.
+
+1. **Short, non-prose additions read as "human" to both signals.**
+   Both broken attacks that matter got there with filler, not with new
+   writing: EV02's "Really." sentences and PI02's SYSTEM line. Filler
+   - raises **sentence-length spread**, because short sentences make the
+     rhythm lumpy;
+   - adds varied **punctuation**;
+   - and, if it's odd enough, raises **perplexity**.
+
+   All three are "more human" to my signals, and neither signal checks
+   whether the added words carry any meaning. So one cheap trick can move
+   both signals at once, and my disagreement rule only protects against a
+   split. The thresholds then let a borderline 0.348 through as `human`.
+   This is signal two's named blind spot ("anything that changes the shape
+   without changing the substance"). PI02 shows it applies to signal one
+   too.
+2. **The scale is squeezed at the top.** The style signal can't go above
+   0.80 for typical AI text (miss 1). The AI label never fires on chatbot
+   prose, so every attack's "held" mark on the evasion side means only
+   "not called human".
+
+**Things that held, but only just** (not misses, but my targets hide them):
+
+- **Criterion 1** passed, but my lab report scored 0.807 and two
+  false-positive attacks scored 0.852 (FP05) and 0.781 (FP02). The only
+  thing between them and an accusation is the 0.90 threshold. The same
+  ceiling that makes `ai` unreachable for AI text is what's protecting
+  these writers.
+- **Criteria 1 and 2** were measured on incomplete sets (see the gaps table
+  above). The missing short-even-sentences piece is the riskiest one for
+  criterion 1. In unit 7 it scored 0.885, so I'd tighten criterion 1 by
+  adding it before trusting the MET.
+
+**No criterion revised.** Criterion 3 was measurable. I could reach a
+verdict in every trial, and the verdict was a miss. That stays a miss,
+not a revision.
+
 
 
 ---
